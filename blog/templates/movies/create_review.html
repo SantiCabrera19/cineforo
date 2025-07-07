@@ -1,0 +1,642 @@
+{% extends 'base.html' %}
+
+{% block title %}Escribir Reseña - CineForo{% endblock %}
+
+{% block extra_head %}
+{{ form.media }}
+<style>
+/* Estilos adicionales para el formulario con CKEditor 5 */
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+/* CKEditor 5 estilos mejorados */
+.ck-editor {
+    width: 100% !important;
+}
+
+.ck-editor__editable {
+    min-height: 300px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+}
+
+.ck-toolbar {
+    border: 1px solid #ddd !important;
+    border-bottom: none !important;
+    border-radius: 4px 4px 0 0 !important;
+    background: #f8f9fa !important;
+}
+
+.ck-content {
+    padding: 1rem !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="main-panel">
+        <h1 style="margin-bottom: 2rem; color: #2c3e50;">
+            <i class="fas fa-plus"></i> Escribir Nueva Reseña
+        </h1>
+
+        <div class="card">
+            <form method="POST" style="max-width: 800px;">
+                {% csrf_token %}
+                
+                <!-- Selección de película -->
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                        Película *
+                    </label>
+                    {% if movie %}
+                        <!-- Película pre-seleccionada -->
+                        <input type="hidden" name="movie" value="{{ movie.id }}">
+                        <div style="display: flex; gap: 1rem; padding: 1rem; background-color: #f8f9fa; border-radius: 8px; align-items: center;">
+                            {% if movie.poster %}
+                                <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" 
+                                     style="width: 60px; height: 90px; object-fit: cover; border-radius: 4px;">
+                            {% else %}
+                                <div style="width: 60px; height: 90px; background-color: #ecf0f1; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                                    <i class="fas fa-film" style="color: #bdc3c7;"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ movie.title }} ({{ movie.year }})</strong>
+                                <br>
+                                <span style="color: #7f8c8d;">{{ movie.director }} • {{ movie.genre }}</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- Buscador de películas autocomplete -->
+                        <div class="movie-autocomplete">
+                            <input type="text" 
+                                   id="movie-search" 
+                                   placeholder="Busca por título, título original o director..."
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"
+                                   autocomplete="off">
+                            <input type="hidden" name="movie" id="selected-movie-id" required>
+                            
+                            <!-- Resultados del autocomplete -->
+                            <div id="autocomplete-results" class="autocomplete-results" style="display: none;"></div>
+                            
+                            <!-- Película seleccionada -->
+                            <div id="selected-movie" class="selected-movie" style="display: none; margin-top: 1rem; padding: 1rem; background-color: #f8f9fa; border-radius: 8px; border: 2px solid #27ae60;">
+                                <div style="display: flex; gap: 1rem; align-items: center;">
+                                    <img id="selected-poster" style="width: 60px; height: 90px; object-fit: cover; border-radius: 4px;">
+                                    <div>
+                                        <strong id="selected-title"></strong>
+                                        <br>
+                                        <span style="color: #7f8c8d;" id="selected-details"></span>
+                                    </div>
+                                    <button type="button" onclick="clearSelectedMovie()" style="margin-left: auto; background: #e74c3c; color: white; border: none; padding: 0.5rem; border-radius: 4px; cursor: pointer;">
+                                        <i class="fas fa-times"></i> Cambiar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <small style="color: #7f8c8d; margin-top: 0.5rem; display: block;">
+                            Escribe al menos 2 caracteres para buscar. Funciona en español e inglés.
+                            {% if user.is_staff %}
+                    <br>¿No encuentras la película? <a href="/admin/" target="_blank" style="color: #3498db;">Agrégala desde el admin</a>
+                {% else %}
+                    <br>¿No encuentras la película? Contacta a los administradores para agregarla.
+                {% endif %}
+                        </small>
+                    {% endif %}
+                </div>
+
+                <!-- Título de la reseña -->
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                        {{ form.title.label }} *
+                    </label>
+                    {{ form.title }}
+                    <small style="color: #7f8c8d; margin-top: 0.5rem; display: block;">
+                        Máximo 200 caracteres. Sé creativo y descriptivo.
+                    </small>
+                    {% if form.title.errors %}
+                        <small style="color: #e74c3c;">{{ form.title.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <!-- Calificación -->
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; margin-bottom: 1rem; font-weight: bold; color: #2c3e50;">
+                        Tu calificación *
+                    </label>
+                    <div class="star-rating" style="display: flex; gap: 0.25rem; align-items: center; margin-bottom: 1rem;">
+                        {% for i in "12345" %}
+                            <i class="fas fa-star rating-star" 
+                               data-rating="{{ forloop.counter }}"
+                               style="font-size: 2.5rem; color: #ddd; cursor: pointer; transition: all 0.2s ease;">
+                            </i>
+                        {% endfor %}
+                        <span id="rating-text" style="margin-left: 1rem; font-weight: bold; color: #7f8c8d; font-size: 1.1rem;"></span>
+                    </div>
+                    <input type="hidden" name="rating" id="rating-input" 
+                           value="{{ form_data.rating|default:'' }}" required>
+                    <small style="color: #7f8c8d;">
+                        Clickea las estrellas para calificar de 1 a 5
+                    </small>
+                </div>
+
+                <!-- Contenido de la reseña -->
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                        {{ form.content.label }} *
+                    </label>
+                    {{ form.content }}
+                    <small style="color: #7f8c8d; margin-top: 0.5rem; display: block;">
+                        {{ form.content.help_text }}
+                    </small>
+                    {% if form.content.errors %}
+                        <small style="color: #e74c3c;">{{ form.content.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <!-- Checkbox de spoilers -->
+                <div style="margin-bottom: 2rem; padding: 1rem; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        {{ form.has_spoilers }}
+                        <span style="font-weight: bold; color: #d68910;">
+                            {{ form.has_spoilers.label }}
+                        </span>
+                    </label>
+                    <small style="color: #b7950b; margin-top: 0.5rem; display: block;">
+                        {{ form.has_spoilers.help_text }}
+                    </small>
+                </div>
+
+                <!-- Botones -->
+                <div style="display: flex; gap: 1rem; justify-content: space-between; align-items: center;">
+                    <a href="{% url 'movies:review_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="submit" name="save_draft" class="btn btn-secondary">
+                            <i class="fas fa-save"></i> Guardar Borrador
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-paper-plane"></i> Publicar Reseña
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-lightbulb"></i> Consejos</h3>
+        <div style="margin-bottom: 1.5rem;">
+            <ul style="color: #555; line-height: 1.6; padding-left: 1.5rem;">
+                <li>Sé honesto pero respetuoso</li>
+                <li>Evita spoilers importantes</li>
+                <li>Fundamenta tus opiniones</li>
+                <li>Considera diferentes aspectos de la película</li>
+                <li>Revisa tu ortografía antes de publicar</li>
+            </ul>
+        </div>
+
+        <h3><i class="fas fa-users"></i> Comunidad</h3>
+        <div style="margin-bottom: 1.5rem;">
+            <p style="color: #7f8c8d; font-size: 0.9rem;">
+                Tus reseñas ayudan a otros cinéfilos a descubrir nuevas películas. 
+                ¡Comparte tu pasión por el cine!
+            </p>
+        </div>
+
+        <h3><i class="fas fa-star"></i> Tu actividad</h3>
+        <div>
+            <p style="color: #7f8c8d;">
+                <strong>{{ user.review_set.count|default:0 }}</strong> reseñas escritas
+            </p>
+            <p style="color: #7f8c8d;">
+                Miembro desde {{ user.date_joined|date:"M Y" }}
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Sistema de calificación con estrellas */
+.rating-star {
+    transition: all 0.2s ease;
+    color: #ddd !important;
+    cursor: pointer;
+}
+
+.rating-star:hover {
+    transform: scale(1.1);
+    color: #f39c12 !important;
+}
+
+.rating-star.filled {
+    color: #f39c12 !important;
+}
+
+.rating-star.hover {
+    color: #f39c12 !important;
+}
+
+/* Asegurar que las estrellas sean visibles */
+.star-rating .fas.fa-star {
+    color: #ddd;
+    transition: all 0.2s ease;
+}
+
+.star-rating .fas.fa-star.filled,
+.star-rating .fas.fa-star.hover {
+    color: #f39c12 !important;
+}
+
+/* Contador de caracteres para textarea */
+textarea:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Estilos para autocomplete */
+.movie-autocomplete {
+    position: relative;
+}
+
+.autocomplete-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.autocomplete-item {
+    padding: 1rem;
+    border-bottom: 1px solid #f5f5f5;
+    cursor: pointer;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.autocomplete-item:hover {
+    background-color: #f8f9fa;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-poster {
+    width: 40px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    background-color: #ecf0f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #bdc3c7;
+}
+
+.autocomplete-info {
+    flex: 1;
+}
+
+.autocomplete-title {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+}
+
+.autocomplete-details {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.selected-movie {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<script>
+// Mejorar la experiencia de calificación con estrellas
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingInputs = document.querySelectorAll('input[name="rating"]');
+    const starLabels = document.querySelectorAll('label:has(input[name="rating"])');
+    
+    // Efecto hover en estrellas
+    starLabels.forEach((label, index) => {
+        label.addEventListener('mouseenter', function() {
+            starLabels.forEach((l, i) => {
+                const stars = l.querySelector('.stars');
+                if (i <= index) {
+                    stars.style.color = '#f39c12';
+                } else {
+                    stars.style.color = '#ddd';
+                }
+            });
+        });
+        
+        label.addEventListener('mouseleave', function() {
+            const checkedInput = document.querySelector('input[name="rating"]:checked');
+            if (checkedInput) {
+                const checkedIndex = Array.from(ratingInputs).indexOf(checkedInput);
+                starLabels.forEach((l, i) => {
+                    const stars = l.querySelector('.stars');
+                    if (i <= checkedIndex) {
+                        stars.style.color = '#f39c12';
+                    } else {
+                        stars.style.color = '#ddd';
+                    }
+                });
+            } else {
+                starLabels.forEach(l => {
+                    l.querySelector('.stars').style.color = '#ddd';
+                });
+            }
+        });
+    });
+});
+
+// Variables globales para autocomplete
+let searchTimeout;
+let selectedMovieData = null;
+let currentMovies = [];
+
+// Función para buscar películas
+function searchMovies(query) {
+    if (query.length < 2) {
+        hideAutocompleteResults();
+        return;
+    }
+    
+    fetch(`/api/movie-autocomplete/?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            showAutocompleteResults(data.movies);
+        })
+        .catch(error => {
+            console.error('Error buscando películas:', error);
+            hideAutocompleteResults();
+        });
+}
+
+// Mostrar resultados del autocomplete
+function showAutocompleteResults(movies) {
+    const resultsContainer = document.getElementById('autocomplete-results');
+    currentMovies = movies; // Guardar movies para usar en selectMovieByIndex
+    
+    if (movies.length === 0) {
+        resultsContainer.innerHTML = '<div style="padding: 1rem; text-align: center; color: #7f8c8d;">No se encontraron películas</div>';
+    } else {
+        resultsContainer.innerHTML = movies.map((movie, index) => `
+            <div class="autocomplete-item" onclick="selectMovieByIndex(${index})">
+                ${movie.poster_url ? 
+                    `<img src="${movie.poster_url}" alt="${movie.title}" class="autocomplete-poster">` :
+                    `<div class="autocomplete-poster"><i class="fas fa-film"></i></div>`
+                }
+                <div class="autocomplete-info">
+                    <div class="autocomplete-title">${movie.title}</div>
+                    <div class="autocomplete-details">
+                        ${movie.original_title && movie.original_title !== movie.title ? `(${movie.original_title}) • ` : ''}
+                        ${movie.year} • ${movie.director} • ${movie.genre}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    resultsContainer.style.display = 'block';
+}
+
+// Ocultar resultados del autocomplete
+function hideAutocompleteResults() {
+    document.getElementById('autocomplete-results').style.display = 'none';
+}
+
+// Seleccionar una película por índice (evita problemas con comillas)
+function selectMovieByIndex(index) {
+    const movie = currentMovies[index];
+    selectMovie(movie.id, movie.title, movie.original_title, movie.year, movie.director, movie.genre, movie.poster_url);
+}
+
+// Seleccionar una película
+function selectMovie(id, title, originalTitle, year, director, genre, posterUrl) {
+    selectedMovieData = { id, title, originalTitle, year, director, genre, posterUrl };
+    
+    // Actualizar campos
+    document.getElementById('selected-movie-id').value = id;
+    document.getElementById('movie-search').value = `${title} (${year})`;
+    
+    // Mostrar película seleccionada
+    const selectedContainer = document.getElementById('selected-movie');
+    const posterElement = document.getElementById('selected-poster');
+    const titleElement = document.getElementById('selected-title');
+    const detailsElement = document.getElementById('selected-details');
+    
+    if (posterUrl) {
+        posterElement.src = posterUrl;
+        posterElement.style.display = 'block';
+    } else {
+        posterElement.style.display = 'none';
+    }
+    
+    titleElement.textContent = `${title} (${year})`;
+    detailsElement.textContent = `${director} • ${genre}`;
+    
+    selectedContainer.style.display = 'block';
+    hideAutocompleteResults();
+}
+
+// Limpiar película seleccionada
+function clearSelectedMovie() {
+    selectedMovieData = null;
+    document.getElementById('selected-movie-id').value = '';
+    document.getElementById('movie-search').value = '';
+    document.getElementById('selected-movie').style.display = 'none';
+    document.getElementById('movie-search').focus();
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('movie-search');
+    
+    if (searchInput) {
+        // Búsqueda con debounce
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            if (selectedMovieData && this.value === `${selectedMovieData.title} (${selectedMovieData.year})`) {
+                return; // No buscar si ya está seleccionada esta película
+            }
+            
+            // Limpiar selección si se cambia el texto
+            if (selectedMovieData) {
+                clearSelectedMovie();
+            }
+            
+            searchTimeout = setTimeout(() => {
+                searchMovies(query);
+            }, 300);
+        });
+        
+        // Ocultar resultados al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.movie-autocomplete')) {
+                hideAutocompleteResults();
+            }
+        });
+        
+        // Mostrar resultados al hacer foco si hay texto
+        searchInput.addEventListener('focus', function() {
+            if (this.value.trim().length >= 2 && !selectedMovieData) {
+                searchMovies(this.value.trim());
+            }
+        });
+    }
+});
+
+// Sistema de calificación con estrellas interactivas
+function initStarRating() {
+    const stars = document.querySelectorAll('.rating-star');
+    const ratingInput = document.getElementById('rating-input');
+    const ratingText = document.getElementById('rating-text');
+    
+    if (!stars.length || !ratingInput || !ratingText) {
+        console.log('❌ Elementos de rating no encontrados');
+        return;
+    }
+    
+    let currentRating = parseInt(ratingInput.value) || 0;
+    const ratingLabels = ['', 'Muy Mala', 'Mala', 'Regular', 'Buena', 'Excelente'];
+    
+    console.log('✅ Inicializando sistema de estrellas, rating actual:', currentRating);
+    
+    // Actualizar visualización de estrellas
+    function updateStars(rating, isHover = false) {
+        stars.forEach((star, index) => {
+            star.classList.remove('filled', 'hover');
+            star.style.color = '#ddd'; // Reset color
+            
+            if (index < rating) {
+                if (isHover) {
+                    star.classList.add('hover');
+                    star.style.color = '#f39c12';
+                } else {
+                    star.classList.add('filled');
+                    star.style.color = '#f39c12';
+                }
+            }
+        });
+        
+        if (rating > 0) {
+            ratingText.textContent = `${rating} ${rating === 1 ? 'estrella' : 'estrellas'} - ${ratingLabels[rating]}`;
+            ratingText.style.color = '#f39c12';
+        } else {
+            ratingText.textContent = '';
+        }
+    }
+    
+    // Eventos de hover
+    stars.forEach((star, index) => {
+        star.addEventListener('mouseenter', () => {
+            updateStars(index + 1, true);
+        });
+        
+        star.addEventListener('click', () => {
+            currentRating = index + 1;
+            ratingInput.value = currentRating;
+            updateStars(currentRating);
+            console.log('⭐ Rating seleccionado:', currentRating);
+        });
+    });
+    
+    // Restaurar estado al salir del hover
+    const starContainer = document.querySelector('.star-rating');
+    if (starContainer) {
+        starContainer.addEventListener('mouseleave', () => {
+            updateStars(currentRating);
+        });
+    }
+    
+    // Inicializar si ya hay rating
+    if (currentRating > 0) {
+        updateStars(currentRating);
+    }
+}
+
+// Ejecutar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    // Pequeño delay para asegurar que todo esté renderizado
+    setTimeout(initStarRating, 100);
+});
+
+
+
+// Validación básica del formulario
+document.querySelector('form').addEventListener('submit', function(e) {
+    const title = document.querySelector('input[name="title"]').value.trim();
+    const content = document.querySelector('textarea[name="content"]').value.trim();
+    const movie = document.querySelector('input[name="movie"]').value;
+    const rating = document.getElementById('rating-input').value;
+    
+    if (!movie || !title || !content || !rating) {
+        e.preventDefault();
+        alert('Por favor completa todos los campos obligatorios.');
+        return;
+    }
+    
+    if (content.length < 50) {
+        e.preventDefault();
+        alert('La reseña debe tener al menos 50 caracteres.');
+        return;
+    }
+});
+
+// Restaurar película seleccionada cuando hay errores
+const formMovieId = '{{ form_data.movie_id|default:"" }}';
+if (formMovieId) {
+    fetch('/api/movie/' + formMovieId + '/')
+        .then(response => response.json())
+        .then(movie => {
+            if (!movie.error) {
+                selectMovie(movie.id, movie.title, movie.original_title, movie.year, movie.director, movie.genre, movie.poster_url);
+            }
+        })
+        .catch(error => {
+            console.error('Error restaurando película:', error);
+            document.getElementById('selected-movie-id').value = formMovieId;
+        });
+}
+</script>
+{% endblock %} 

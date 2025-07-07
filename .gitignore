@@ -1,0 +1,162 @@
+# =======================
+# PROYECTO CINEFORO
+# .gitignore para Django
+# =======================
+
+# ===== ENTORNO VIRTUAL =====
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# ===== ARCHIVOS DE PYTHON =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ===== CONFIGURACIONES SENSIBLES =====
+.env
+.env.local
+.env.production
+.env.staging
+# NO ignorar env.example (debe estar en repo)
+!env.example
+
+# ===== BASE DE DATOS =====
+db.sqlite3
+db.sqlite3-journal
+*.db
+
+# ===== ARCHIVOS ESTÁTICOS COMPILADOS =====
+staticfiles/
+/static/
+collected-static/
+
+# ===== ARCHIVOS DE USUARIOS (MEDIA) =====
+media/
+uploads/
+user-uploads/
+
+# ===== LOGS =====
+*.log
+logs/
+log/
+
+# ===== CACHE =====
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ===== CONFIGURACIONES DE EDITOR =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== ARCHIVOS DEL SISTEMA =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===== DJANGO ESPECÍFICO =====
+local_settings.py
+/locale/
+.po~
+
+# ===== CELERY =====
+celerybeat-schedule
+celerybeat.pid
+
+# ===== ARCHIVOS TEMPORALES =====
+*.tmp
+*.temp
+.tmp/
+temp/
+
+# ===== BACKUPS =====
+*.bak
+*.backup
+backup/
+
+# ===== CERTIFICADOS Y CLAVES =====
+*.pem
+*.key
+*.crt
+*.csr
+
+# ===== ARCHIVOS DE CONFIGURACIÓN LOCAL =====
+config/local/
+settings/local.py
+
+# ===== MIGRACIONES ESPECÍFICAS (opcional) =====
+# Descomenta si no quieres versionar migraciones específicas
+# **/migrations/*.py
+# !**/migrations/__init__.py
+
+# ===== ARCHIVOS DE PRUEBA =====
+.tox/
+.coverage
+.pytest_cache/
+junit.xml
+coverage.xml
+
+# ===== NODE.JS (si usas npm/yarn) =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===== ARCHIVOS DE DISEÑO =====
+*.psd
+*.ai
+*.sketch
+
+# ===== DOCUMENTACIÓN TEMPORAL =====
+docs/_build/
+site/
+
+# ===== HEROKU =====
+.heroku/
+Procfile.local
+
+# ===== DOCKER =====
+docker-compose.override.yml
+.dockerignore
+
+# ===== JUPYTER NOTEBOOKS =====
+.ipynb_checkpoints
+
+# ===== SPYDER IDE =====
+.spyderproject
+.spyproject
+
+# ===== ROPE =====
+.ropeproject
+
+# ===== MKDOCS =====
+/site 

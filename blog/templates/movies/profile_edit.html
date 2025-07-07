@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Mi Perfil - CineForo{% endblock %}
+
+{% block content %}
+<div class="content-wrapper" style="max-width: 800px; margin: 0 auto;">
+    <div class="main-panel" style="margin-right: 0;">
+        <div class="card" style="padding: 2rem; margin: 2rem auto;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%); width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; color: white; font-size: 2.5rem;">
+                    <i class="fas fa-user-edit"></i>
+                </div>
+                <h1 style="color: #2c3e50; margin-bottom: 0.5rem;">Editar Mi Perfil</h1>
+                <p style="color: #7f8c8d;">Personaliza tu experiencia en CineForo</p>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" style="margin-bottom: 2rem;">
+                {% csrf_token %}
+                
+                <!-- Información básica -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3498db;">
+                    <h3 style="color: #2c3e50; margin-bottom: 1.5rem;">
+                        <i class="fas fa-id-card"></i> Información Básica
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                                <i class="fas fa-user"></i> Nombre de usuario
+                            </label>
+                            <input type="text" 
+                                   value="{{ user.username }}" 
+                                   disabled
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; background: #f8f9fa; color: #7f8c8d;">
+                            <small style="color: #7f8c8d; font-size: 0.9rem;">El nombre de usuario no se puede cambiar</small>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input type="email" 
+                                   name="email"
+                                   value="{{ user.email }}" 
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;"
+                                   placeholder="tu@email.com">
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                                <i class="fas fa-user-circle"></i> Nombre
+                            </label>
+                            <input type="text" 
+                                   name="first_name"
+                                   value="{{ user.first_name }}" 
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;"
+                                   placeholder="Tu nombre">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                                <i class="fas fa-user-tag"></i> Apellido
+                            </label>
+                            <input type="text" 
+                                   name="last_name"
+                                   value="{{ user.last_name }}" 
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;"
+                                   placeholder="Tu apellido">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información del perfil -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #e74c3c;">
+                    <h3 style="color: #2c3e50; margin-bottom: 1.5rem;">
+                        <i class="fas fa-film"></i> Perfil Cinematográfico
+                    </h3>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                            <i class="fas fa-quote-left"></i> Biografía
+                        </label>
+                        <textarea name="bio" 
+                                  rows="4"
+                                  style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"
+                                  placeholder="Cuéntanos sobre tu pasión por el cine, tus géneros favoritos, directores preferidos...">{{ profile.bio|default:'' }}</textarea>
+                        <small style="color: #7f8c8d; font-size: 0.9rem;">Máximo 500 caracteres</small>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                                <i class="fas fa-heart"></i> Género favorito
+                            </label>
+                            <select name="favorite_genre" 
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="">Seleccionar género</option>
+                                <option value="Drama" {% if profile.favorite_genre == 'Drama' %}selected{% endif %}>Drama</option>
+                                <option value="Acción" {% if profile.favorite_genre == 'Acción' %}selected{% endif %}>Acción</option>
+                                <option value="Comedia" {% if profile.favorite_genre == 'Comedia' %}selected{% endif %}>Comedia</option>
+                                <option value="Terror" {% if profile.favorite_genre == 'Terror' %}selected{% endif %}>Terror</option>
+                                <option value="Ciencia Ficción" {% if profile.favorite_genre == 'Ciencia Ficción' %}selected{% endif %}>Ciencia Ficción</option>
+                                <option value="Romance" {% if profile.favorite_genre == 'Romance' %}selected{% endif %}>Romance</option>
+                                <option value="Thriller" {% if profile.favorite_genre == 'Thriller' %}selected{% endif %}>Thriller</option>
+                                <option value="Aventura" {% if profile.favorite_genre == 'Aventura' %}selected{% endif %}>Aventura</option>
+                                <option value="Animación" {% if profile.favorite_genre == 'Animación' %}selected{% endif %}>Animación</option>
+                                <option value="Documental" {% if profile.favorite_genre == 'Documental' %}selected{% endif %}>Documental</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                                <i class="fas fa-calendar-alt"></i> Fecha de nacimiento
+                            </label>
+                            <input type="date" 
+                                   name="birth_date"
+                                   value="{{ profile.birth_date|date:'Y-m-d'|default:'' }}" 
+                                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuración de privacidad -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #f39c12;">
+                    <h3 style="color: #2c3e50; margin-bottom: 1.5rem;">
+                        <i class="fas fa-shield-alt"></i> Configuración de Privacidad
+                    </h3>
+                    
+                    <div style="display: grid; gap: 1rem;">
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.75rem; background: white; border-radius: 8px; border: 1px solid #ddd;">
+                            <input type="checkbox" 
+                                   name="show_email" 
+                                   {% if profile.show_email %}checked{% endif %}
+                                   style="transform: scale(1.2);">
+                            <div>
+                                <strong>Mostrar email en mi perfil público</strong>
+                                <br><small style="color: #7f8c8d;">Otros usuarios podrán ver tu email</small>
+                            </div>
+                        </label>
+                        
+                        <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; padding: 0.75rem; background: white; border-radius: 8px; border: 1px solid #ddd;">
+                            <input type="checkbox" 
+                                   name="show_age" 
+                                   {% if profile.show_age %}checked{% endif %}
+                                   style="transform: scale(1.2);">
+                            <div>
+                                <strong>Mostrar mi edad en el perfil</strong>
+                                <br><small style="color: #7f8c8d;">Se calculará automáticamente desde tu fecha de nacimiento</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div style="display: flex; gap: 1rem; justify-content: center; padding-top: 1rem; border-top: 1px solid #ddd;">
+                    <button type="submit" class="btn" style="padding: 0.75rem 2rem; font-size: 1.1rem;">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                    <a href="{% url 'movies:profile_view' user.username %}" class="btn btn-secondary" style="padding: 0.75rem 2rem; text-decoration: none;">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+            
+            <!-- Estadísticas del usuario -->
+            <div style="background: linear-gradient(135deg, #e8f5e8 0%, #f0f8ff 100%); padding: 1.5rem; border-radius: 8px; text-align: center;">
+                <h4 style="color: #2c3e50; margin-bottom: 1rem;">
+                    <i class="fas fa-chart-pie"></i> Tus Estadísticas en CineForo
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                    <div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #e74c3c;">{{ user.review_set.count }}</div>
+                        <div style="color: #7f8c8d;">Reseñas escritas</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #3498db;">{{ user.comment_set.count }}</div>
+                        <div style="color: #7f8c8d;">Comentarios</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #2ecc71;">{{ user.like_set.count }}</div>
+                        <div style="color: #7f8c8d;">Likes dados</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #f39c12;">
+                            {% with user.review_set.all as reviews %}
+                                {% if reviews %}
+                                    {{ reviews|length }}
+                                {% else %}
+                                    0
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div style="color: #7f8c8d;">Días activo</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Animaciones */
+.card {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilos mejorados para inputs */
+input:focus, select:focus, textarea:focus {
+    outline: none !important;
+    border-color: #3498db !important;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2) !important;
+}
+
+/* Hover effects */
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .content-wrapper > div > .card {
+        margin: 1rem !important;
+        padding: 1.5rem !important;
+    }
+    
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    div[style*="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+</style>
+{% endblock %} 

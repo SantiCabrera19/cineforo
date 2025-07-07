@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+
+{% block title %}Buscar: {{ query }} - CineForo{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="main-panel">
+        <h1 style="margin-bottom: 2rem; color: #2c3e50;">
+            <i class="fas fa-search"></i> 
+            {% if query %}
+                Resultados para "{{ query }}"
+            {% else %}
+                Búsqueda
+            {% endif %}
+        </h1>
+
+        {% if query %}
+            <!-- Películas encontradas -->
+            {% if results.movies %}
+                <div class="card" style="margin-bottom: 2rem;">
+                    <h2 style="margin-bottom: 1.5rem; color: #2c3e50;">
+                        <i class="fas fa-film"></i> Películas ({{ results.movies.count }})
+                    </h2>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+                        {% for movie in results.movies %}
+                            <div style="display: flex; gap: 1rem; padding: 1rem; border: 1px solid #ecf0f1; border-radius: 8px; transition: transform 0.2s;">
+                                {% if movie.poster %}
+                                    <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" 
+                                         style="width: 60px; height: 90px; object-fit: cover; border-radius: 4px;">
+                                {% else %}
+                                    <div style="width: 60px; height: 90px; background-color: #ecf0f1; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                                        <i class="fas fa-film" style="color: #bdc3c7;"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <div style="flex: 1;">
+                                    <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">
+                                        <a href="{% url 'movies:movie_detail' movie.slug %}" style="text-decoration: none; color: #2c3e50;">
+                                            {{ movie.title }}
+                                        </a>
+                                    </h3>
+                                    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                        {{ movie.year }} • {{ movie.director }}
+                                    </p>
+                                    <span style="background-color: #3498db; color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">
+                                        {{ movie.genre }}
+                                    </span>
+                                    {% if movie.imdb_rating %}
+                                        <span class="stars" style="margin-left: 1rem; font-size: 0.9rem;">
+                                            <i class="fas fa-star"></i> {{ movie.imdb_rating }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Reseñas encontradas -->
+            {% if results.reviews %}
+                <div class="card">
+                    <h2 style="margin-bottom: 1.5rem; color: #2c3e50;">
+                        <i class="fas fa-star"></i> Reseñas ({{ results.reviews.count }})
+                    </h2>
+                    
+                    {% for review in results.reviews %}
+                        <div style="border-bottom: 1px solid #ecf0f1; padding: 1.5rem 0;">
+                            <div style="display: flex; gap: 1.5rem;">
+                                {% if review.movie.poster %}
+                                    <img src="{{ review.movie.poster.url }}" alt="{{ review.movie.title }}" 
+                                         style="width: 60px; height: 90px; object-fit: cover; border-radius: 4px;">
+                                {% else %}
+                                    <div style="width: 60px; height: 90px; background-color: #ecf0f1; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                                        <i class="fas fa-film" style="color: #bdc3c7;"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <div style="flex: 1;">
+                                    <h3 style="margin-bottom: 0.5rem;">
+                                        <a href="{% url 'movies:review_detail' review.slug %}" style="text-decoration: none; color: #2c3e50;">
+                                            {{ review.title }}
+                                        </a>
+                                    </h3>
+                                    
+                                    <p style="color: #7f8c8d; margin-bottom: 0.5rem;">
+                                        Reseña de 
+                                        <a href="{% url 'movies:movie_detail' review.movie.slug %}" style="color: #3498db; text-decoration: none;">
+                                            {{ review.movie.title }} ({{ review.movie.year }})
+                                        </a>
+                                    </p>
+                                    
+                                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                        <span class="stars">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= review.rating %}
+                                                    <i class="fas fa-star"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <span style="color: #7f8c8d;">
+                                            por <a href="{% url 'movies:profile_view' review.author.username %}" style="color: #3498db; text-decoration: none;">{{ review.author.username }}</a>
+                                        </span>
+                                        <span style="color: #95a5a6; font-size: 0.9rem;">{{ review.created_at|date:"d M Y" }}</span>
+                                    </div>
+                                    
+                                    <p style="color: #555; line-height: 1.6;">
+                                        {{ review.content|truncatewords:30 }}
+                                        <a href="{% url 'movies:review_detail' review.slug %}" style="color: #3498db;">...leer más</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Sin resultados -->
+            {% if not results.movies and not results.reviews %}
+                <div class="card" style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-search" style="font-size: 4rem; color: #bdc3c7; margin-bottom: 1rem;"></i>
+                    <h3 style="color: #7f8c8d; margin-bottom: 1rem;">No se encontraron resultados</h3>
+                    <p style="color: #95a5a6; margin-bottom: 2rem;">
+                        No encontramos películas ni reseñas que coincidan con "{{ query }}".
+                    </p>
+                    
+                    <div style="max-width: 500px; margin: 0 auto;">
+                        <h4 style="color: #2c3e50; margin-bottom: 1rem;">Sugerencias:</h4>
+                        <ul style="text-align: left; color: #7f8c8d; line-height: 1.8;">
+                            <li>Verifica la ortografía de las palabras</li>
+                            <li>Intenta con palabras más generales</li>
+                            <li>Busca por director, actor o género</li>
+                            <li>Prueba con sinónimos o términos relacionados</li>
+                        </ul>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                        <div style="margin-top: 2rem;">
+                            <a href="{% url 'movies:create_review' %}" class="btn">
+                                <i class="fas fa-plus"></i> Escribir nueva reseña
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <!-- Página de búsqueda sin consulta -->
+            <div class="card" style="text-align: center; padding: 3rem;">
+                <i class="fas fa-search" style="font-size: 4rem; color: #3498db; margin-bottom: 1rem;"></i>
+                <h3 style="color: #2c3e50; margin-bottom: 1rem;">Buscar en CineForo</h3>
+                <p style="color: #7f8c8d; margin-bottom: 2rem;">
+                    Encuentra películas, reseñas y mucho más
+                </p>
+                
+                <form method="GET" style="max-width: 500px; margin: 0 auto;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" 
+                               name="q" 
+                               placeholder="Escribe aquí tu búsqueda..."
+                               style="flex: 1; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                        <button type="submit" class="btn" style="padding: 1rem 2rem;">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                <div style="max-width: 600px; margin: 2rem auto;">
+                    <h4 style="color: #2c3e50; margin-bottom: 1rem;">Ejemplos de búsqueda:</h4>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
+                        <a href="?q=Tarantino" class="btn btn-secondary" style="font-size: 0.9rem;">Tarantino</a>
+                        <a href="?q=terror" class="btn btn-secondary" style="font-size: 0.9rem;">Terror</a>
+                        <a href="?q=2023" class="btn btn-secondary" style="font-size: 0.9rem;">2023</a>
+                        <a href="?q=acción" class="btn btn-secondary" style="font-size: 0.9rem;">Acción</a>
+                        <a href="?q=Marvel" class="btn btn-secondary" style="font-size: 0.9rem;">Marvel</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        {% if query %}
+            <h3><i class="fas fa-info-circle"></i> Resultados</h3>
+            <div style="margin-bottom: 1.5rem;">
+                <p><strong>{{ results.movies.count }}</strong> película{{ results.movies.count|pluralize }}</p>
+                <p><strong>{{ results.reviews.count }}</strong> reseña{{ results.reviews.count|pluralize }}</p>
+            </div>
+            
+            <h3><i class="fas fa-filter"></i> Refinar búsqueda</h3>
+            <form method="GET" style="margin-bottom: 1.5rem;">
+                <input type="hidden" name="q" value="{{ query }}">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Tipo:</label>
+                    <select name="type" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Todo</option>
+                        <option value="movies" {% if request.GET.type == "movies" %}selected{% endif %}>Solo películas</option>
+                        <option value="reviews" {% if request.GET.type == "reviews" %}selected{% endif %}>Solo reseñas</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Aplicar filtro</button>
+            </form>
+        {% endif %}
+
+        <h3><i class="fas fa-fire"></i> Búsquedas populares</h3>
+        <div style="margin-bottom: 1.5rem;">
+            <a href="?q=Scorsese" style="display: block; padding: 0.5rem; margin-bottom: 0.5rem; background-color: #f8f9fa; border-radius: 4px; text-decoration: none; color: #2c3e50;">Scorsese</a>
+            <a href="?q=ciencia ficción" style="display: block; padding: 0.5rem; margin-bottom: 0.5rem; background-color: #f8f9fa; border-radius: 4px; text-decoration: none; color: #2c3e50;">Ciencia ficción</a>
+            <a href="?q=drama" style="display: block; padding: 0.5rem; margin-bottom: 0.5rem; background-color: #f8f9fa; border-radius: 4px; text-decoration: none; color: #2c3e50;">Drama</a>
+            <a href="?q=2023" style="display: block; padding: 0.5rem; margin-bottom: 0.5rem; background-color: #f8f9fa; border-radius: 4px; text-decoration: none; color: #2c3e50;">Películas 2023</a>
+        </div>
+
+        <h3><i class="fas fa-compass"></i> Explorar</h3>
+        <div>
+            <a href="{% url 'movies:movie_list' %}" style="display: block; padding: 0.5rem; margin-bottom: 0.5rem; background-color: #f8f9fa; border-radius: 4px; text-decoration: none; color: #2c3e50;">Todas las películas</a>
+            <a href="{% url 'movies:review_list' %}" style="display: block; padding: 0.5rem; margin-bottom: 0.5rem; background-color: #f8f9fa; border-radius: 4px; text-decoration: none; color: #2c3e50;">Todas las reseñas</a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

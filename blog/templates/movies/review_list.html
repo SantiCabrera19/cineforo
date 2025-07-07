@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Reseñas - CineForo{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="main-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1><i class="fas fa-star"></i> Todas las Reseñas</h1>
+            {% if user.is_authenticated %}
+                <a href="{% url 'movies:create_review' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nueva Reseña
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Filtros -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem;"><i class="fas fa-filter"></i> Filtros</h3>
+            <form method="GET" style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Género:</label>
+                    <select name="genre" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; width: 150px;">
+                        <option value="">Todos</option>
+                        {% for genre in genres %}
+                            <option value="{{ genre }}" {% if request.GET.genre == genre %}selected{% endif %}>
+                                {{ genre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Calificación:</label>
+                    <select name="rating" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; width: 120px;">
+                        <option value="">Todas</option>
+                        <option value="5" {% if request.GET.rating == "5" %}selected{% endif %}>5 estrellas</option>
+                        <option value="4" {% if request.GET.rating == "4" %}selected{% endif %}>4 estrellas</option>
+                        <option value="3" {% if request.GET.rating == "3" %}selected{% endif %}>3 estrellas</option>
+                        <option value="2" {% if request.GET.rating == "2" %}selected{% endif %}>2 estrellas</option>
+                        <option value="1" {% if request.GET.rating == "1" %}selected{% endif %}>1 estrella</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+                
+                {% if request.GET.genre or request.GET.rating %}
+                    <a href="{% url 'movies:review_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Lista de Reseñas -->
+        {% for review in reviews %}
+            <div class="card">
+                <div style="display: flex; gap: 1.5rem;">
+                    {% if review.movie.poster %}
+                        <img src="{{ review.movie.poster.url }}" alt="{{ review.movie.title }}" 
+                             style="width: 80px; height: 120px; object-fit: cover; border-radius: 4px;">
+                    {% else %}
+                        <div style="width: 80px; height: 120px; background-color: #ecf0f1; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                            <i class="fas fa-film" style="color: #bdc3c7;"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <h2 style="margin-bottom: 0.5rem;">
+                                    <a href="{% url 'movies:review_detail' review.slug %}" style="text-decoration: none; color: #2c3e50;">
+                                        {{ review.title }}
+                                    </a>
+                                </h2>
+                                <p style="color: #7f8c8d; margin-bottom: 0.5rem;">
+                                    Reseña de 
+                                    <a href="{% url 'movies:movie_detail' review.movie.slug %}" style="color: #3498db; text-decoration: none;">
+                                        {{ review.movie.title }} ({{ review.movie.year }})
+                                    </a>
+                                </p>
+                                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                    <span class="stars">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <span style="color: #7f8c8d;">
+                                        por <a href="{% url 'movies:profile_view' review.author.username %}" style="color: #3498db; text-decoration: none;">{{ review.author.username }}</a>
+                                    </span>
+                                    <span style="color: #95a5a6; font-size: 0.9rem;">{{ review.created_at|date:"d M Y" }}</span>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span style="color: #7f8c8d; font-size: 0.9rem;">
+                                    <i class="fas fa-heart"></i> {{ review.likes_count }}
+                                </span>
+                                <span style="color: #7f8c8d; font-size: 0.9rem;">
+                                    <i class="fas fa-comment"></i> {{ review.comments_count }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <p style="color: #555; line-height: 1.6;">
+                            {{ review.content|truncatewords:40 }}
+                            {% if review.content|wordcount > 40 %}
+                                <a href="{% url 'movies:review_detail' review.slug %}" style="color: #3498db;">...leer más</a>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="card" style="text-align: center; padding: 3rem;">
+                <i class="fas fa-comment-slash" style="font-size: 4rem; color: #bdc3c7; margin-bottom: 1rem;"></i>
+                <h3 style="color: #7f8c8d; margin-bottom: 1rem;">No se encontraron reseñas</h3>
+                <p style="color: #95a5a6;">
+                    {% if request.GET.genre or request.GET.rating %}
+                        Prueba ajustando los filtros.
+                    {% else %}
+                        ¡Sé el primero en escribir una reseña!
+                    {% endif %}
+                </p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'movies:create_review' %}" class="btn" style="margin-top: 1rem;">
+                        <i class="fas fa-plus"></i> Escribir Primera Reseña
+                    </a>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <!-- Paginación -->
+        {% if reviews.has_other_pages %}
+            <div class="pagination">
+                {% if reviews.has_previous %}
+                    <a href="?page=1{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}">&laquo; Primera</a>
+                    <a href="?page={{ reviews.previous_page_number }}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}">Anterior</a>
+                {% endif %}
+                
+                <span class="current">
+                    Página {{ reviews.number }} de {{ reviews.paginator.num_pages }}
+                </span>
+                
+                {% if reviews.has_next %}
+                    <a href="?page={{ reviews.next_page_number }}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}">Siguiente</a>
+                    <a href="?page={{ reviews.paginator.num_pages }}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}">Última &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-fire"></i> Top Géneros</h3>
+        <div style="margin-bottom: 1.5rem;">
+            {% for genre in genres %}
+                <a href="?genre={{ genre }}" style="display: block; padding: 0.5rem; margin-bottom: 0.5rem; background-color: #f8f9fa; border-radius: 4px; text-decoration: none; color: #2c3e50;">
+                    {{ genre }}
+                </a>
+            {% endfor %}
+        </div>
+
+        <h3><i class="fas fa-award"></i> Reseñas Destacadas</h3>
+        <div>
+            <p style="color: #7f8c8d; font-size: 0.9rem;">
+                Descubre las reseñas mejor valoradas por la comunidad.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

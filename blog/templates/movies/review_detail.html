@@ -1,0 +1,455 @@
+{% extends 'base.html' %}
+<!-- csstools-disable-next-line -->
+{% block title %}{{ review.title }} - CineForo{% endblock %}
+
+{% block extra_head %}
+{{ comment_form.media }}
+<style>
+/* CKEditor 5 para comentarios */
+.ck-editor {
+    width: 100% !important;
+}
+
+.ck-editor__editable {
+    min-height: 150px !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+}
+
+.ck-toolbar {
+    border: 1px solid #ddd !important;
+    border-bottom: none !important;
+    border-radius: 4px 4px 0 0 !important;
+    background: #f8f9fa !important;
+    padding: 4px !important;
+}
+
+.ck-content {
+    padding: 0.75rem !important;
+    font-size: 0.95rem !important;
+    line-height: 1.5 !important;
+}
+
+/* Spoiler box styling */
+.spoiler-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border: 1px solid #d68910;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(214, 137, 16, 0.1);
+}
+
+.spoiler-content {
+    filter: blur(5px);
+    transition: all 0.4s ease;
+    cursor: pointer;
+    user-select: none;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+    border: 1px dashed #d68910;
+    position: relative;
+}
+
+.spoiler-content:hover {
+    filter: blur(3px);
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(1.01);
+}
+
+.spoiler-content.revealed {
+    filter: none;
+    user-select: text;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 1rem 0;
+    transform: none;
+}
+
+.spoiler-content.revealed:hover {
+    filter: none;
+    background: transparent;
+    transform: none;
+}
+
+/* Botón like */
+.like-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.like-btn.liked {
+    background-color: #e74c3c !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="main-panel">
+        <!-- Header de la reseña -->
+        <div class="card">
+            <div style="display: flex; gap: 2rem; margin-bottom: 2rem;">
+                {% if review.movie.poster %}
+                    <img src="{{ review.movie.poster.url }}" alt="{{ review.movie.title }}" 
+                         style="width: 120px; height: 180px; object-fit: cover; border-radius: 8px;">
+                {% else %}
+                    <div style="width: 120px; height: 180px; background-color: #ecf0f1; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <i class="fas fa-film" style="font-size: 2rem; color: #bdc3c7;"></i>
+                    </div>
+                {% endif %}
+                
+                <div style="flex: 1;">
+                    <h1 style="margin-bottom: 0.5rem; color: #2c3e50;">{{ review.title }}</h1>
+                    <p style="color: #7f8c8d; margin-bottom: 1rem;">
+                        Reseña de 
+                        <a href="{% url 'movies:movie_detail' review.movie.slug %}" style="color: #3498db; text-decoration: none;">
+                            <strong>{{ review.movie.title }} ({{ review.movie.year }})</strong>
+                        </a>
+                    </p>
+                    
+                    <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                        <div class="stars" style="font-size: 1.2rem;">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span style="margin-left: 0.5rem;">{{ review.rating }}/5</span>
+                        </div>
+                        
+                        <span style="color: #7f8c8d;">
+                            por <a href="{% url 'movies:profile_view' review.author.username %}" style="color: #3498db; text-decoration: none;">{{ review.author.username }}</a>
+                        </span>
+                        
+                        <span style="color: #95a5a6;">{{ review.created_at|date:"d M Y" }}</span>
+                        
+                        {% if review.updated_at != review.created_at %}
+                            <span style="color: #95a5a6; font-size: 0.9rem;">(editado)</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Botones de interacción -->
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        {% if user.is_authenticated %}
+                            {% csrf_token %}
+                            <!-- prettier-ignore -->
+                            <button class="btn like-btn{% if user_liked %} liked{% endif %}" 
+                                    data-review-id="{{ review.id }}">
+                                <i class="fas fa-heart"></i>
+                                <span class="like-count">{{ likes_count }}</span>
+                            </button>
+                        {% else %}
+                            <span style="color: #7f8c8d;">
+                                <i class="fas fa-heart"></i> {{ likes_count }}
+                            </span>
+                        {% endif %}
+                        
+                        <span style="color: #7f8c8d;">
+                            <i class="fas fa-comment"></i> {{ comments.count }} comentario{{ comments.count|pluralize }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido de la reseña -->
+        <div class="card">
+            {% if review.has_spoilers %}
+                <div class="spoiler-warning">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                        <i class="fas fa-exclamation-triangle" style="color: #d68910; font-size: 1.2rem;"></i>
+                        <strong style="color: #d68910; font-size: 1.1rem;">¡Atención! Esta reseña contiene spoilers</strong>
+                    </div>
+                    <div class="spoiler-content spoiler-reveal" title="Click para revelar spoilers" style="font-size: 1.1rem; line-height: 1.8; color: #333;">
+                        {{ review.content|safe }}
+                    </div>
+                    <small style="color: #b7950b; font-style: italic; margin-top: 1rem; display: block;">Haz click arriba para revelar el contenido completo</small>
+                </div>
+            {% else %}
+                <div style="font-size: 1.1rem; line-height: 1.8; color: #333;">
+                    {{ review.content|safe }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sección de comentarios -->
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem; color: #2c3e50;">
+                <i class="fas fa-comments"></i> Comentarios ({{ comments.count }})
+            </h2>
+
+            <!-- Formulario para nuevo comentario -->
+            {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'movies:add_comment' review.id %}" style="margin-bottom: 2rem; padding: 1.5rem; background-color: #f8f9fa; border-radius: 8px;">
+                    {% csrf_token %}
+                    <h3 style="margin-bottom: 1rem; color: #2c3e50;">
+                        <i class="fas fa-comment-medical"></i> Agregar comentario
+                    </h3>
+                    
+                    <!-- CKEditor para comentarios -->
+                    <div id="comment-editor-container">
+                        {{ comment_form.content }}
+                    </div>
+                    
+                    <!-- Checkbox de spoilers -->
+                    <div style="margin: 1rem 0; padding: 0.75rem; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            {{ comment_form.has_spoilers }}
+                            <span style="font-weight: bold; color: #d68910;">
+                                {{ comment_form.has_spoilers.label }}
+                            </span>
+                        </label>
+                        <small style="color: #b7950b; margin-top: 0.5rem; display: block;">
+                            {{ comment_form.has_spoilers.help_text }}
+                        </small>
+                    </div>
+                    
+                    <button type="submit" class="btn" style="margin-top: 1rem;">
+                        <i class="fas fa-paper-plane"></i> Comentar
+                    </button>
+                </form>
+            {% else %}
+                <div style="text-align: center; padding: 2rem; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 2rem;">
+                    <p style="color: #7f8c8d; margin-bottom: 1rem;">Inicia sesión para comentar</p>
+                    <a href="{% url 'movies:login' %}" class="btn">Ingresar</a>
+                </div>
+            {% endif %}
+
+            <!-- Lista de comentarios -->
+            {% for comment in comments %}
+                <div style="border-bottom: 1px solid #ecf0f1; padding: 1.5rem 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <div>
+                            <strong>
+                                <a href="{% url 'movies:profile_view' comment.author.username %}" style="color: #2c3e50; text-decoration: none;">
+                                    {{ comment.author.username }}
+                                </a>
+                            </strong>
+                            <span style="color: #95a5a6; margin-left: 1rem; font-size: 0.9rem;">
+                                {{ comment.created_at|date:"d M Y - H:i" }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Contenido del comentario con posible spoiler -->
+                    <div style="margin-bottom: 1rem;">
+                        {% if comment.has_spoilers %}
+                            <div class="spoiler-warning">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    <i class="fas fa-exclamation-triangle" style="color: #d68910;"></i>
+                                    <strong style="color: #d68910;">¡Atención! Este comentario contiene spoilers</strong>
+                                </div>
+                                <div class="spoiler-content" onclick="this.classList.add('revealed')" title="Click para revelar spoilers">
+                                    {{ comment.content|safe }}
+                                </div>
+                                <small style="color: #b7950b; font-style: italic;">Haz click arriba para revelar el contenido</small>
+                            </div>
+                        {% else %}
+                            <div style="color: #555; line-height: 1.6;">
+                                {{ comment.content|safe }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Respuestas al comentario -->
+                    {% if comment.replies.all %}
+                        <div style="margin-left: 2rem; border-left: 3px solid #ecf0f1; padding-left: 1rem;">
+                            {% for reply in comment.replies.all %}
+                                <div style="margin-bottom: 1rem; padding: 1rem; background-color: #f8f9fa; border-radius: 4px;">
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <strong>
+                                            <a href="{% url 'movies:profile_view' reply.author.username %}" style="color: #2c3e50; text-decoration: none;">
+                                                {{ reply.author.username }}
+                                            </a>
+                                        </strong>
+                                        <span style="color: #95a5a6; margin-left: 1rem; font-size: 0.9rem;">
+                                            {{ reply.created_at|date:"d M Y - H:i" }}
+                                        </span>
+                                    </div>
+                                    <!-- Contenido de respuesta con posible spoiler -->
+                                    {% if reply.has_spoilers %}
+                                        <div class="spoiler-warning" style="margin: 0;">
+                                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                                <i class="fas fa-exclamation-triangle" style="color: #d68910; font-size: 0.8rem;"></i>
+                                                <strong style="color: #d68910; font-size: 0.9rem;">Spoiler</strong>
+                                            </div>
+                                            <div class="spoiler-content spoiler-reveal" title="Click para revelar spoilers">
+                                                {{ reply.content|safe }}
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div style="color: #555; line-height: 1.6;">
+                                            {{ reply.content|safe }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Botón para responder -->
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-secondary reply-btn" data-comment-id="{{ comment.id }}" style="font-size: 0.9rem;">
+                            <i class="fas fa-reply"></i> Responder
+                        </button>
+                        
+                        <!-- Formulario de respuesta (oculto por defecto) -->
+                        <div id="reply-form-{{ comment.id }}" style="display: none; margin-top: 1rem; margin-left: 2rem; padding: 1rem; background-color: #f8f9fa; border-radius: 6px; border-left: 3px solid #3498db;">
+                            <form method="POST" action="{% url 'movies:add_comment' review.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.9rem; color: #2c3e50;">
+                                        Responder a {{ comment.author.username }}:
+                                    </label>
+                                    <textarea name="content" 
+                                              rows="3" 
+                                              placeholder="Escribe tu respuesta... Usa negritas para destacar puntos importantes."
+                                              style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;"
+                                              required></textarea>
+                                </div>
+                                
+                                <!-- Checkbox spoilers para respuestas -->
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+                                        <input type="checkbox" name="has_spoilers" style="margin: 0;">
+                                        <span style="color: #d68910;">⚠️ Contiene spoilers</span>
+                                    </label>
+                                </div>
+                                
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button type="submit" class="btn" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                                        <i class="fas fa-reply"></i> Responder
+                                    </button>
+                                    <button type="button" class="btn btn-secondary cancel-reply" data-comment-id="{{ comment.id }}" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div style="text-align: center; padding: 2rem; color: #7f8c8d;">
+                    <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-info-circle"></i> Sobre la película</h3>
+        <div style="margin-bottom: 1.5rem;">
+            <p><strong>{{ review.movie.title }}</strong></p>
+            <p>{{ review.movie.year }} • {{ review.movie.director }}</p>
+            <p>{{ review.movie.genre }}</p>
+            {% if review.movie.imdb_rating %}
+                <p class="stars">
+                    <i class="fas fa-star"></i> {{ review.movie.imdb_rating }}/10 IMDb
+                </p>
+            {% endif %}
+        </div>
+
+        <h3><i class="fas fa-user"></i> Sobre el autor</h3>
+        <div style="margin-bottom: 1.5rem;">
+            <p>
+                <a href="{% url 'movies:profile_view' review.author.username %}" style="color: #3498db; text-decoration: none;">
+                    <strong>{{ review.author.username }}</strong>
+                </a>
+            </p>
+            <p style="color: #7f8c8d; font-size: 0.9rem;">
+                Miembro desde {{ review.author.date_joined|date:"M Y" }}
+            </p>
+        </div>
+
+        <h3><i class="fas fa-film"></i> Más del autor</h3>
+        <div>
+            <a href="{% url 'movies:profile_view' review.author.username %}" class="btn" style="width: 100%; text-align: center;">
+                Ver todas sus reseñas
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Función para toggle like (AJAX)
+function toggleLike(reviewId) {
+    fetch(`/toggle-like/${reviewId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const button = document.querySelector(`[data-review-id="${reviewId}"]`);
+        const likeCount = button.querySelector('.like-count');
+        likeCount.textContent = data.likes_count;
+        
+        if (data.liked) {
+            button.classList.add('liked');
+            button.style.backgroundColor = '#e74c3c';
+        } else {
+            button.classList.remove('liked');
+            button.style.backgroundColor = '';
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Función para toggle formularios de respuesta
+function toggleReplyForm(commentId) {
+    const form = document.getElementById(`reply-form-${commentId}`);
+    if (form.style.display === 'none' || form.style.display === '') {
+        form.style.display = 'block';
+        form.querySelector('textarea').focus();
+    } else {
+        form.style.display = 'none';
+    }
+}
+
+// Event listeners cuando carga la página
+document.addEventListener('DOMContentLoaded', function() {
+    // Likes
+    document.querySelectorAll('.like-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const reviewId = this.dataset.reviewId;
+            toggleLike(reviewId);
+        });
+    });
+    
+    // Botones responder
+    document.querySelectorAll('.reply-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            toggleReplyForm(commentId);
+        });
+    });
+    
+    // Botones cancelar respuesta
+    document.querySelectorAll('.cancel-reply').forEach(button => {
+        button.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            toggleReplyForm(commentId);
+        });
+    });
+    
+    // Spoiler reveal
+    document.querySelectorAll('.spoiler-reveal').forEach(element => {
+        element.addEventListener('click', function() {
+            this.classList.add('revealed');
+        });
+    });
+});
+</script>
+{% endblock %} 

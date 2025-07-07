@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión - CineForo{% endblock %}
+
+{% block content %}
+<div class="content-wrapper" style="max-width: 1200px; margin: 0 auto;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; margin: 2rem 0;">
+        
+        <!-- Formulario de Login -->
+        <div class="card" style="padding: 2rem;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <i class="fas fa-film" style="font-size: 3rem; color: #3498db; margin-bottom: 1rem;"></i>
+                <h1 style="color: #2c3e50; margin-bottom: 0.5rem;">¡Bienvenido de vuelta!</h1>
+                <p style="color: #7f8c8d;">Inicia sesión para continuar explorando el mundo del cine</p>
+            </div>
+
+            <form method="POST" style="margin-bottom: 2rem;">
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="username" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                        <i class="fas fa-user"></i> Usuario
+                    </label>
+                    <input type="text" 
+                           id="username" 
+                           name="username" 
+                           required
+                           style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"
+                           placeholder="Tu nombre de usuario">
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <label for="password" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                        <i class="fas fa-lock"></i> Contraseña
+                    </label>
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           required
+                           style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;"
+                           placeholder="Tu contraseña">
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%; padding: 0.75rem; font-size: 1.1rem;">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </button>
+            </form>
+            
+            <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid #ecf0f1;">
+                <p style="color: #7f8c8d; margin-bottom: 1rem;">¿No tienes una cuenta?</p>
+                <a href="{% url 'movies:signup' %}" class="btn btn-secondary" style="padding: 0.75rem 2rem;">
+                    <i class="fas fa-user-plus"></i> Crear Cuenta
+                </a>
+            </div>
+            
+            <div style="margin-top: 2rem; text-align: center;">
+                <a href="{% url 'movies:movie_list' %}" style="color: #3498db; text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Volver al inicio
+                </a>
+            </div>
+        </div>
+        
+        <!-- Contenido cinematográfico -->
+        <div class="cinema-content">
+            <div class="card" style="padding: 2rem; background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); color: white; text-align: center;">
+                <h2 style="color: #f39c12; margin-bottom: 1.5rem;">
+                    <i class="fas fa-film"></i> Bienvenido a CineForo
+                </h2>
+                <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem;">
+                    La comunidad de cinéfilos más apasionada donde cada película cuenta una historia y cada reseña importa.
+                </p>
+                
+                <div style="display: grid; gap: 1.5rem; margin-bottom: 2rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="background: #e74c3c; padding: 1rem; border-radius: 50%; min-width: 50px;">
+                            <i class="fas fa-users" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div style="text-align: left;">
+                            <h4 style="margin: 0; color: #ecf0f1;">Comunidad Activa</h4>
+                            <p style="margin: 0; color: #bdc3c7;">Miles de cinéfilos compartiendo opiniones</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="background: #3498db; padding: 1rem; border-radius: 50%; min-width: 50px;">
+                            <i class="fas fa-star" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div style="text-align: left;">
+                            <h4 style="margin: 0; color: #ecf0f1;">Reseñas Detalladas</h4>
+                            <p style="margin: 0; color: #bdc3c7;">Editor avanzado con formato enriquecido</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="background: #2ecc71; padding: 1rem; border-radius: 50%; min-width: 50px;">
+                            <i class="fas fa-heart" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div style="text-align: left;">
+                            <h4 style="margin: 0; color: #ecf0f1;">Sistema Anti-Spoilers</h4>
+                            <p style="margin: 0; color: #bdc3c7;">Protegemos tu experiencia cinematográfica</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f39c12;">
+                    <h4 style="margin: 0 0 0.5rem; color: #f39c12;">
+                        <i class="fas fa-quote-left"></i> Frase del día
+                    </h4>
+                    <p style="margin: 0; font-style: italic;">
+                        "El cine es un espejo pintado" - Ettore Scola
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Estadísticas rápidas -->
+            <div class="card" style="padding: 1.5rem; margin-top: 1.5rem; background: #f8f9fa;">
+                <h4 style="text-align: center; margin-bottom: 1rem; color: #2c3e50;">
+                    <i class="fas fa-chart-line"></i> En CineForo
+                </h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: #3498db;">{{ stats.total_movies }}</div>
+                        <div style="color: #7f8c8d;">Película{{ stats.total_movies|pluralize }}</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: #e74c3c;">{{ stats.total_reviews }}</div>
+                        <div style="color: #7f8c8d;">Reseña{{ stats.total_reviews|pluralize }}</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: #2ecc71;">{{ stats.total_users }}</div>
+                        <div style="color: #7f8c8d;">Usuario{{ stats.total_users|pluralize }}</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: #f39c12;">{{ stats.total_comments }}</div>
+                        <div style="color: #7f8c8d;">Comentario{{ stats.total_comments|pluralize }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Animaciones para el formulario */
+.card {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .content-wrapper > div {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+    
+    .cinema-content {
+        order: -1;
+    }
+    
+    .cinema-content .card {
+        padding: 1.5rem !important;
+    }
+}
+</style>
+{% endblock %} 

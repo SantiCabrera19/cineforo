@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Cuenta - CineForo{% endblock %}
+
+{% block content %}
+<div class="content-wrapper" style="max-width: 1200px; margin: 0 auto;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; margin: 2rem 0;">
+        
+        <!-- Formulario de Registro -->
+        <div class="card" style="padding: 2rem;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <i class="fas fa-film" style="font-size: 3rem; color: #3498db; margin-bottom: 1rem;"></i>
+                <h1 style="color: #2c3e50; margin-bottom: 0.5rem;">¡Únete a CineForo!</h1>
+                <p style="color: #7f8c8d;">Crea tu cuenta y comienza a compartir tu pasión por el cine</p>
+            </div>
+
+            <form method="POST" style="margin-bottom: 2rem;">
+                {% csrf_token %}
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="id_username" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                        <i class="fas fa-user"></i> Nombre de usuario
+                    </label>
+                    {{ form.username }}
+                    {% if form.username.help_text %}
+                        <small style="color: #7f8c8d; font-size: 0.9rem; display: block; margin-top: 0.25rem;">
+                            {{ form.username.help_text }}
+                        </small>
+                    {% endif %}
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="id_password1" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                        <i class="fas fa-lock"></i> Contraseña
+                    </label>
+                    {{ form.password1 }}
+                    {% if form.password1.help_text %}
+                        <small style="color: #7f8c8d; font-size: 0.9rem; display: block; margin-top: 0.25rem;">
+                            {{ form.password1.help_text }}
+                        </small>
+                    {% endif %}
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <label for="id_password2" style="display: block; margin-bottom: 0.5rem; font-weight: bold; color: #2c3e50;">
+                        <i class="fas fa-lock"></i> Confirmar contraseña
+                    </label>
+                    {{ form.password2 }}
+                    {% if form.password2.help_text %}
+                        <small style="color: #7f8c8d; font-size: 0.9rem; display: block; margin-top: 0.25rem;">
+                            {{ form.password2.help_text }}
+                        </small>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn" style="width: 100%; padding: 0.75rem; font-size: 1.1rem;">
+                    <i class="fas fa-user-plus"></i> Crear Mi Cuenta
+                </button>
+            </form>
+            
+            <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid #ecf0f1;">
+                <p style="color: #7f8c8d; margin-bottom: 1rem;">¿Ya tienes una cuenta?</p>
+                <a href="{% url 'movies:login' %}" class="btn btn-secondary" style="padding: 0.75rem 2rem;">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </a>
+            </div>
+            
+            <div style="margin-top: 2rem; text-align: center;">
+                <a href="{% url 'movies:movie_list' %}" style="color: #3498db; text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Volver al inicio
+                </a>
+            </div>
+        </div>
+        
+        
+        <!-- Contenido cinematográfico -->
+        <div class="cinema-content">
+            <div class="card" style="padding: 2rem; background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%); color: white; text-align: center;">
+                <h2 style="color: #f1c40f; margin-bottom: 1.5rem;">
+                    <i class="fas fa-star"></i> ¡Únete a la Revolución Cinematográfica!
+                </h2>
+                <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem;">
+                    Descubre, comparte y debate sobre el séptimo arte con una comunidad apasionada por el cine.
+                </p>
+                
+                <div style="display: grid; gap: 1.5rem; margin-bottom: 2rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="background: #e67e22; padding: 1rem; border-radius: 50%; min-width: 50px;">
+                            <i class="fas fa-pen-fancy" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div style="text-align: left;">
+                            <h4 style="margin: 0; color: #ecf0f1;">Editor Avanzado</h4>
+                            <p style="margin: 0; color: #bdc3c7;">Escribe reseñas con formato enriquecido</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="background: #16a085; padding: 1rem; border-radius: 50%; min-width: 50px;">
+                            <i class="fas fa-comments" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div style="text-align: left;">
+                            <h4 style="margin: 0; color: #ecf0f1;">Debates Enriquecedores</h4>
+                            <p style="margin: 0; color: #bdc3c7;">Comenta y conecta con otros cinéfilos</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="background: #c0392b; padding: 1rem; border-radius: 50%; min-width: 50px;">
+                            <i class="fas fa-eye-slash" style="font-size: 1.2rem;"></i>
+                        </div>
+                        <div style="text-align: left;">
+                            <h4 style="margin: 0; color: #ecf0f1;">Sin Spoilers</h4>
+                            <p style="margin: 0; color: #bdc3c7;">Sistema inteligente anti-spoilers</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f1c40f;">
+                    <h4 style="margin: 0 0 0.5rem; color: #f1c40f;">
+                        <i class="fas fa-lightbulb"></i> ¿Sabías que...?
+                    </h4>
+                                         <p style="margin: 0; font-style: italic;">
+                         Únete a {{ stats.total_users }} cinéfilos que ya han escrito {{ stats.total_reviews }} reseñas sobre {{ stats.total_movies }} películas.
+                     </p>
+                </div>
+            </div>
+            
+            <!-- Beneficios detallados -->
+            <div class="card" style="padding: 1.5rem; margin-top: 1.5rem; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                <h4 style="text-align: center; margin-bottom: 1rem; color: #2c3e50;">
+                    <i class="fas fa-gift"></i> Al unirte obtienes
+                </h4>
+                <div style="display: grid; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="background: #3498db; color: white; padding: 0.5rem; border-radius: 50%; min-width: 35px; text-align: center;">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <span style="font-weight: 500;">Perfil personalizado con estadísticas</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="background: #2ecc71; color: white; padding: 0.5rem; border-radius: 50%; min-width: 35px; text-align: center;">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <span style="font-weight: 500;">Notificaciones de nuevas reseñas</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="background: #e74c3c; color: white; padding: 0.5rem; border-radius: 50%; min-width: 35px; text-align: center;">
+                            <i class="fas fa-bookmark"></i>
+                        </div>
+                        <span style="font-weight: 500;">Lista de películas favoritas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos para el formulario Django */
+#id_username, #id_password1, #id_password2 {
+    width: 100% !important;
+    padding: 0.75rem !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    font-size: 1rem !important;
+    box-sizing: border-box !important;
+}
+
+#id_username::placeholder, #id_password1::placeholder, #id_password2::placeholder {
+    color: #999 !important;
+}
+
+/* Animaciones */
+.card {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+input:focus {
+    outline: none !important;
+    border-color: #3498db !important;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2) !important;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .content-wrapper > div {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+    
+    .cinema-content {
+        order: -1;
+    }
+    
+    .cinema-content .card {
+        padding: 1.5rem !important;
+    }
+}
+</style>
+{% endblock %} 

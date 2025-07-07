@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - CineForo{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="main-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1><i class="fas fa-film"></i> Películas Destacadas</h1>
+            {% if user.is_authenticated %}
+                <a href="{% url 'movies:create_review' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nueva Reseña
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Grid de Películas -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            {% for movie in movies %}
+                <div class="card" style="text-align: center;">
+                    {% if movie.poster %}
+                        <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" 
+                             style="width: 100%; height: 250px; object-fit: cover; border-radius: 4px; margin-bottom: 1rem;">
+                    {% else %}
+                        <div style="width: 100%; height: 250px; background-color: #ecf0f1; display: flex; align-items: center; justify-content: center; border-radius: 4px; margin-bottom: 1rem;">
+                            <i class="fas fa-film" style="font-size: 3rem; color: #bdc3c7;"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <h3 style="margin-bottom: 0.5rem; font-size: 1rem;">
+                        <a href="{% url 'movies:movie_detail' movie.slug %}" style="text-decoration: none; color: #2c3e50;">
+                            {{ movie.title }}
+                        </a>
+                    </h3>
+                    
+                    <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                        {{ movie.year }} • {{ movie.director }}
+                    </p>
+                    
+                    {% if movie.imdb_rating %}
+                        <div class="stars" style="margin-bottom: 0.5rem;">
+                            <i class="fas fa-star"></i> {{ movie.imdb_rating }}/10
+                        </div>
+                    {% endif %}
+                    
+                    <span style="background-color: #3498db; color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.8rem;">
+                        {{ movie.genre }}
+                    </span>
+                </div>
+            {% empty %}
+                <p style="grid-column: 1/-1; text-align: center; color: #7f8c8d; padding: 2rem;">
+                    No hay películas disponibles.
+                {% if user.is_staff %}
+                    <a href="/admin/" class="btn" style="margin-left: 1rem;">Agregar desde Admin</a>
+                {% endif %}
+                </p>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        {% if movies.has_other_pages %}
+            <div class="pagination">
+                {% if movies.has_previous %}
+                    <a href="?page=1">&laquo; Primera</a>
+                    <a href="?page={{ movies.previous_page_number }}">Anterior</a>
+                {% endif %}
+                
+                <span class="current">
+                    Página {{ movies.number }} de {{ movies.paginator.num_pages }}
+                </span>
+                
+                {% if movies.has_next %}
+                    <a href="?page={{ movies.next_page_number }}">Siguiente</a>
+                    <a href="?page={{ movies.paginator.num_pages }}">Última &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-chart-line"></i> Estadísticas</h3>
+        <div style="margin-bottom: 1.5rem;">
+            <p><strong>{{ total_movies }}</strong> películas</p>
+            <p><strong>{{ total_reviews }}</strong> reseñas</p>
+            {% if user.is_authenticated %}
+                <p><strong>{{ user.review_set.count|default:0 }}</strong> tus reseñas</p>
+            {% endif %}
+        </div>
+
+        <h3><i class="fas fa-clock"></i> Reseñas Recientes</h3>
+        {% for review in recent_reviews %}
+            <div style="border-bottom: 1px solid #ecf0f1; padding: 1rem 0;">
+                <a href="{% url 'movies:review_detail' review.slug %}" style="text-decoration: none; color: #2c3e50;">
+                    <strong>{{ review.title|truncatechars:30 }}</strong>
+                </a>
+                <br>
+                <small style="color: #7f8c8d;">
+                    {{ review.movie.title }} • 
+                    <span class="stars">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </span>
+                </small>
+                <br>
+                <small style="color: #95a5a6;">por {{ review.author.username }}</small>
+            </div>
+        {% empty %}
+            <p style="color: #7f8c8d;">No hay reseñas aún.</p>
+        {% endfor %}
+
+        {% if user.is_authenticated %}
+            <div style="margin-top: 2rem;">
+                <a href="{% url 'movies:create_review' %}" class="btn" style="width: 100%; text-align: center;">
+                    <i class="fas fa-plus"></i> Escribir Reseña
+                </a>
+            </div>
+        {% else %}
+            <div style="margin-top: 2rem; text-align: center;">
+                <p style="color: #7f8c8d; margin-bottom: 1rem;">¡Únete a la comunidad!</p>
+                                    <a href="{% url 'movies:login' %}" class="btn" style="width: 100%; margin-bottom: 0.5rem;">Ingresar</a>
+                    <a href="{% url 'movies:signup' %}" class="btn btn-secondary" style="width: 100%;">Registrarse</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

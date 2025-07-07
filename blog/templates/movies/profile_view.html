@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.username }} - CineForo{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="main-panel">
+        <!-- Header del perfil -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div style="display: flex; gap: 2rem; align-items: center;">
+                {% if profile.avatar %}
+                    <img src="{{ profile.avatar.url }}" alt="{{ profile_user.username }}" 
+                         style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 4px solid #3498db;">
+                {% else %}
+                    <div style="width: 120px; height: 120px; background-color: #3498db; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: white; font-size: 3rem;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                {% endif %}
+                
+                <div style="flex: 1;">
+                    <h1 style="margin-bottom: 0.5rem; color: #2c3e50;">{{ profile_user.username }}</h1>
+                    
+                    {% if profile.bio %}
+                        <p style="color: #555; line-height: 1.6; margin-bottom: 1rem;">{{ profile.bio }}</p>
+                    {% endif %}
+                    
+                    <div style="display: flex; gap: 2rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                        {% if profile.location %}
+                            <span style="color: #7f8c8d;">
+                                <i class="fas fa-map-marker-alt"></i> {{ profile.location }}
+                            </span>
+                        {% endif %}
+                        
+                        {% if profile.favorite_genre %}
+                            <span style="color: #7f8c8d;">
+                                <i class="fas fa-heart"></i> {{ profile.favorite_genre }}
+                            </span>
+                        {% endif %}
+                        
+                        <span style="color: #7f8c8d;">
+                            <i class="fas fa-calendar-alt"></i> Miembro desde {{ profile_user.date_joined|date:"M Y" }}
+                        </span>
+                    </div>
+                    
+                    {% if user == profile_user %}
+                        <a href="{% url 'movies:profile_edit' %}" class="btn">
+                            <i class="fas fa-edit"></i> Editar Perfil
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas del usuario -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            <div class="card" style="text-align: center;">
+                <i class="fas fa-star" style="font-size: 2rem; color: #f39c12; margin-bottom: 0.5rem;"></i>
+                <h3 style="margin-bottom: 0.5rem; color: #2c3e50;">{{ total_reviews }}</h3>
+                <p style="color: #7f8c8d;">Reseñas escritas</p>
+            </div>
+            
+            <div class="card" style="text-align: center;">
+                <i class="fas fa-heart" style="font-size: 2rem; color: #e74c3c; margin-bottom: 0.5rem;"></i>
+                <h3 style="margin-bottom: 0.5rem; color: #2c3e50;">{{ profile_user.review_set.all|length }}</h3>
+                <p style="color: #7f8c8d;">Likes recibidos</p>
+            </div>
+            
+            <div class="card" style="text-align: center;">
+                <i class="fas fa-comment" style="font-size: 2rem; color: #3498db; margin-bottom: 0.5rem;"></i>
+                <h3 style="margin-bottom: 0.5rem; color: #2c3e50;">{{ profile_user.comment_set.all|length }}</h3>
+                <p style="color: #7f8c8d;">Comentarios</p>
+            </div>
+            
+            <div class="card" style="text-align: center;">
+                <i class="fas fa-clock" style="font-size: 2rem; color: #27ae60; margin-bottom: 0.5rem;"></i>
+                <h3 style="margin-bottom: 0.5rem; color: #2c3e50;">
+                    {{ profile_user.date_joined|timesince|truncatewords:1 }}
+                </h3>
+                <p style="color: #7f8c8d;">En la comunidad</p>
+            </div>
+        </div>
+
+        <!-- Reseñas del usuario -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="color: #2c3e50;">
+                    <i class="fas fa-star"></i> Reseñas de {{ profile_user.username }} ({{ total_reviews }})
+                </h2>
+                
+                {% if total_reviews > 10 %}
+                    <a href="?all_reviews=1" class="btn btn-secondary">Ver todas</a>
+                {% endif %}
+            </div>
+            
+            {% for review in reviews %}
+                <div style="border-bottom: 1px solid #ecf0f1; padding: 1.5rem 0;">
+                    <div style="display: flex; gap: 1.5rem;">
+                        {% if review.movie.poster %}
+                            <img src="{{ review.movie.poster.url }}" alt="{{ review.movie.title }}" 
+                                 style="width: 60px; height: 90px; object-fit: cover; border-radius: 4px;">
+                        {% else %}
+                            <div style="width: 60px; height: 90px; background-color: #ecf0f1; display: flex; align-items: center; justify-content: center; border-radius: 4px;">
+                                <i class="fas fa-film" style="color: #bdc3c7;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div style="flex: 1;">
+                            <h3 style="margin-bottom: 0.5rem;">
+                                <a href="{% url 'movies:review_detail' review.slug %}" style="text-decoration: none; color: #2c3e50;">
+                                    {{ review.title }}
+                                </a>
+                            </h3>
+                            
+                            <p style="color: #7f8c8d; margin-bottom: 0.5rem;">
+                                Reseña de 
+                                <a href="{% url 'movies:movie_detail' review.movie.slug %}" style="color: #3498db; text-decoration: none;">
+                                    {{ review.movie.title }} ({{ review.movie.year }})
+                                </a>
+                            </p>
+                            
+                            <div style="display: flex; align-items: center; gap: 2rem; margin-bottom: 0.5rem;">
+                                <span class="stars">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ review.rating }}/5
+                                </span>
+                                
+                                <span style="color: #95a5a6; font-size: 0.9rem;">
+                                    {{ review.created_at|date:"d M Y" }}
+                                </span>
+                                
+                                <span style="color: #7f8c8d; font-size: 0.9rem;">
+                                    <i class="fas fa-heart"></i> {{ review.likes.count }}
+                                </span>
+                                
+                                <span style="color: #7f8c8d; font-size: 0.9rem;">
+                                    <i class="fas fa-comment"></i> {{ review.comments.count }}
+                                </span>
+                            </div>
+                            
+                            <p style="color: #555; line-height: 1.6;">
+                                {{ review.content|truncatewords:25 }}
+                                <a href="{% url 'movies:review_detail' review.slug %}" style="color: #3498db;">...leer más</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div style="text-align: center; padding: 3rem; color: #7f8c8d;">
+                    <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    {% if user == profile_user %}
+                        <p>Aún no has escrito ninguna reseña.</p>
+                        <a href="{% url 'movies:create_review' %}" class="btn" style="margin-top: 1rem;">
+                            <i class="fas fa-plus"></i> Escribir mi primera reseña
+                        </a>
+                    {% else %}
+                        <p>{{ profile_user.username }} aún no ha escrito reseñas.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-chart-pie"></i> Análisis</h3>
+        <div style="margin-bottom: 1.5rem;">
+            {% if total_reviews > 0 %}
+                <div style="margin-bottom: 1rem;">
+                    <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">Géneros favoritos:</h4>
+                    {% comment %}
+                    <!-- Aquí podrías agregar lógica para mostrar los géneros más reseñados -->
+                    {% endcomment %}
+                    <p style="color: #7f8c8d; font-size: 0.9rem;">
+                        {% if profile.favorite_genre %}
+                            {{ profile.favorite_genre }}
+                        {% else %}
+                            Variado
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <h4 style="color: #2c3e50; margin-bottom: 0.5rem;">Promedio de calificación:</h4>
+                    <div class="stars" style="font-size: 1.1rem;">
+                        <!-- Calcular promedio aquí -->
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="far fa-star"></i>
+                        4.2/5
+                    </div>
+                </div>
+            {% else %}
+                <p style="color: #7f8c8d; font-size: 0.9rem;">
+                    No hay suficientes datos para mostrar estadísticas.
+                </p>
+            {% endif %}
+        </div>
+
+        {% if profile.favorite_genre %}
+            <h3><i class="fas fa-film"></i> Recomendado</h3>
+            <div style="margin-bottom: 1.5rem;">
+                <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">
+                    Basado en su interés en {{ profile.favorite_genre }}:
+                </p>
+                <a href="{% url 'movies:review_list' %}?genre={{ profile.favorite_genre }}" class="btn" style="width: 100%; text-align: center;">
+                    Ver más {{ profile.favorite_genre }}
+                </a>
+            </div>
+        {% endif %}
+
+        <h3><i class="fas fa-users"></i> Comunidad</h3>
+        <div>
+            <p style="color: #7f8c8d; font-size: 0.9rem;">
+                {% if user == profile_user %}
+                    Tu perfil es público. Otros usuarios pueden ver tus reseñas y estadísticas.
+                {% else %}
+                    ¿Te gusta el contenido de {{ profile_user.username }}? ¡Síguelo para no perderte sus nuevas reseñas!
+                {% endif %}
+            </p>
+            
+            {% if user != profile_user and user.is_authenticated %}
+                <button class="btn" style="width: 100%; margin-top: 1rem;">
+                    <i class="fas fa-user-plus"></i> Seguir usuario
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

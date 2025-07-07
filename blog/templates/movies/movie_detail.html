@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ movie.title }} ({{ movie.year }}) - CineForo{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="main-panel">
+        <!-- Header de la película -->
+        <div style="display: flex; gap: 2rem; margin-bottom: 2rem; background: white; border-radius: 8px; padding: 2rem;">
+            {% if movie.poster %}
+                <img src="{{ movie.poster.url }}" alt="{{ movie.title }}" 
+                     style="width: 200px; height: 300px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+            {% else %}
+                <div style="width: 200px; height: 300px; background-color: #ecf0f1; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                    <i class="fas fa-film" style="font-size: 4rem; color: #bdc3c7;"></i>
+                </div>
+            {% endif %}
+            
+            <div style="flex: 1;">
+                <h1 style="margin-bottom: 0.5rem; color: #2c3e50;">{{ movie.title }}</h1>
+                {% if movie.original_title and movie.original_title != movie.title %}
+                    <p style="color: #7f8c8d; margin-bottom: 1rem; font-style: italic;">({{ movie.original_title }})</p>
+                {% endif %}
+                
+                <div style="display: flex; gap: 2rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <span><strong>Año:</strong> {{ movie.year }}</span>
+                    <span><strong>Director:</strong> {{ movie.director }}</span>
+                    <span><strong>Género:</strong> {{ movie.genre }}</span>
+                    <span><strong>Duración:</strong> {{ movie.duration }} min</span>
+                </div>
+                
+                {% if movie.imdb_rating %}
+                    <div style="margin-bottom: 1rem;">
+                        <span class="stars" style="font-size: 1.2rem;">
+                            <i class="fas fa-star"></i> {{ movie.imdb_rating }}/10 IMDb
+                        </span>
+                    </div>
+                {% endif %}
+                
+                {% if avg_rating %}
+                    <div style="margin-bottom: 1rem;">
+                        <span class="stars">
+                            <i class="fas fa-users"></i> {{ avg_rating|floatformat:1 }}/5 
+                            ({{ total_reviews }} reseña{{ total_reviews|pluralize }})
+                        </span>
+                    </div>
+                {% endif %}
+                
+                <p style="color: #555; line-height: 1.6;">{{ movie.synopsis }}</p>
+                
+                {% if user.is_authenticated %}
+                    <div style="margin-top: 1.5rem;">
+                        <a href="{% url 'movies:create_review_for_movie' movie.slug %}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Escribir Reseña
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Reseñas de la película -->
+        <div class="card">
+            <h2 style="margin-bottom: 1.5rem; color: #2c3e50;">
+                <i class="fas fa-star"></i> Reseñas ({{ total_reviews }})
+            </h2>
+            
+            {% for review in reviews %}
+                <div style="border-bottom: 1px solid #ecf0f1; padding: 1.5rem 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <div>
+                            <h3 style="margin-bottom: 0.5rem;">
+                                <a href="{% url 'movies:review_detail' review.slug %}" style="text-decoration: none; color: #2c3e50;">
+                                    {{ review.title }}
+                                </a>
+                            </h3>
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                <span class="stars">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                                <span style="color: #7f8c8d;">
+                                    por <a href="{% url 'movies:profile_view' review.author.username %}" style="color: #3498db; text-decoration: none;">{{ review.author.username }}</a>
+                                </span>
+                                <span style="color: #95a5a6; font-size: 0.9rem;">{{ review.created_at|date:"d M Y" }}</span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span style="color: #7f8c8d; font-size: 0.9rem;">
+                                <i class="fas fa-heart"></i> {{ review.likes_count }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <p style="color: #555; line-height: 1.6;">
+                        {{ review.content|truncatewords:30 }}
+                        {% if review.content|wordcount > 30 %}
+                            <a href="{% url 'movies:review_detail' review.slug %}" style="color: #3498db;">...leer más</a>
+                        {% endif %}
+                    </p>
+                </div>
+            {% empty %}
+                <div style="text-align: center; padding: 2rem; color: #7f8c8d;">
+                    <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <p>No hay reseñas para esta película aún.</p>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'movies:create_review_for_movie' movie.slug %}" class="btn" style="margin-top: 1rem;">
+                            ¡Sé el primero en reseñarla!
+                        </a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3><i class="fas fa-info-circle"></i> Información</h3>
+        <div style="margin-bottom: 1.5rem;">
+            <p><strong>Título:</strong> {{ movie.title }}</p>
+            <p><strong>Año:</strong> {{ movie.year }}</p>
+            <p><strong>Director:</strong> {{ movie.director }}</p>
+            <p><strong>Género:</strong> {{ movie.genre }}</p>
+            <p><strong>Duración:</strong> {{ movie.duration }} minutos</p>
+            {% if movie.imdb_rating %}
+                <p><strong>IMDb:</strong> {{ movie.imdb_rating }}/10</p>
+            {% endif %}
+        </div>
+
+        {% if total_reviews > 0 %}
+            <h3><i class="fas fa-chart-bar"></i> Estadísticas</h3>
+            <div style="margin-bottom: 1.5rem;">
+                <p><strong>{{ total_reviews }}</strong> reseña{{ total_reviews|pluralize }}</p>
+                {% if avg_rating %}
+                    <p><strong>{{ avg_rating|floatformat:1 }}/5</strong> promedio</p>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <h3><i class="fas fa-film"></i> Más Películas</h3>
+        <div>
+            <a href="{% url 'movies:movie_list' %}" class="btn" style="width: 100%; text-align: center;">
+                Ver Todas las Películas
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 
