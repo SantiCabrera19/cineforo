@@ -13,12 +13,12 @@ from .forms import ReviewForm, CommentForm
 def movie_list(request):
     """Página principal - Lista de películas con reseñas recientes"""
     movies = Movie.objects.all().order_by('-created_at')
-    recent_reviews = Review.objects.select_related('movie', 'author').order_by('-created_at')[:5]
+    recent_reviews = Review.objects.select_related('movie', 'author').order_by('-created_at')[:5] # se muestran 5 reseñas recientes
     
     # Paginación
-    paginator = Paginator(movies, 12)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    paginator = Paginator(movies, 12) # si hay mas de 12 peliculas, se muestran 12 peliculas por pagina
+    page_number = request.GET.get('page') # obtenemos el numero de pagina
+    page_obj = paginator.get_page(page_number) # obtenemos la pagina
     
     context = {
         'movies': page_obj,
@@ -30,7 +30,7 @@ def movie_list(request):
 
 def movie_detail(request, slug):
     """Detalle de película con todas sus reseñas"""
-    movie = get_object_or_404(Movie, slug=slug)
+    movie = get_object_or_404(Movie, slug=slug) # primero trae 
     reviews = movie.reviews.select_related('author').annotate(
         likes_count=Count('likes')
     ).order_by('-created_at')
@@ -95,15 +95,15 @@ def review_detail(request, slug):
     }
     return render(request, 'movies/review_detail.html', context)
 
-@login_required
+@login_required # protegemos la vista para que solo los usuarios autenticados puedan crear reseñas
 def create_review(request, movie_slug=None):
     """Crear nueva reseña"""
     movie = None
-    if movie_slug:
-        movie = get_object_or_404(Movie, slug=movie_slug)
+    if movie_slug: # si hay un movie_slug, se trae la pelicula
+        movie = get_object_or_404(Movie, slug=movie_slug) # si no existe, se devuelve un 404
     
-    if request.method == 'POST':
-        form = ReviewForm(request.POST)
+    if request.method == 'POST': # si el metodo es post, se crea la reseña
+        form = ReviewForm(request.POST) # se crea el formulario
         movie_id = request.POST.get('movie')
         
         if movie_id and form.is_valid():
@@ -116,7 +116,7 @@ def create_review(request, movie_slug=None):
                     raise ValueError('Review already exists')
                 
                 # Crear la reseña
-                review = form.save(commit=False)
+                review = form.save(commit=False) # se guarda la reseña pero no se guarda en la base de datos
                 review.movie = selected_movie
                 review.author = request.user
                 review.save()
@@ -172,31 +172,31 @@ def profile_view(request, username):
 @login_required
 def profile_edit(request):
     """Editar mi perfil"""
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    profile, created = UserProfile.objects.get_or_create(user=request.user) # se trae el perfil del usuario
     
-    if request.method == 'POST':
+    if request.method == 'POST': 
         # Actualizar datos del usuario
         user = request.user
-        user.email = request.POST.get('email', user.email)
-        user.first_name = request.POST.get('first_name', user.first_name)
-        user.last_name = request.POST.get('last_name', user.last_name)
-        user.save()
+        user.email = request.POST.get('email', user.email) # se actualiza el email
+        user.first_name = request.POST.get('first_name', user.first_name) # se actualiza el nombre
+        user.last_name = request.POST.get('last_name', user.last_name) # se actualiza el apellido
+        user.save() # se guarda el usuario
         
         # Actualizar datos del perfil
         profile.bio = request.POST.get('bio', profile.bio)[:500]  # Límite de caracteres
         profile.favorite_genre = request.POST.get('favorite_genre', profile.favorite_genre)
         
         # Manejar fecha de nacimiento
-        birth_date = request.POST.get('birth_date')
-        if birth_date:
-            from datetime import datetime
-            try:
-                profile.birth_date = datetime.strptime(birth_date, '%Y-%m-%d').date()
-            except ValueError:
-                pass
+        birth_date = request.POST.get('birth_date') # se trae la fecha de nacimiento
+        if birth_date: # si hay una fecha de nacimiento
+            from datetime import datetime # importamos datetime para manejar fechas
+            try: # si la fecha de nacimiento es valida
+                profile.birth_date = datetime.strptime(birth_date, '%Y-%m-%d').date() # se guarda la fecha de nacimiento
+            except ValueError: # si la fecha de nacimiento no es valida
+                pass # se pasa
         
         # Configuraciones de privacidad
-        profile.show_email = 'show_email' in request.POST
+        profile.show_email = 'show_email' in request.POST 
         profile.show_age = 'show_age' in request.POST
         
         profile.save()
@@ -207,42 +207,44 @@ def profile_edit(request):
     context = {'profile': profile, 'hide_search': True}
     return render(request, 'movies/profile_edit.html', context)
 
+
+# usamos AJAX, que es una forma de comunicarse con el servidor sin recargar la pagina, viene de javascript
 @login_required
-def toggle_like(request, review_id):
+def toggle_like(request, review_id): # toggle like en reseña (AJAX)
     """Toggle like en reseña (AJAX)"""
     if request.method == 'POST':
         review = get_object_or_404(Review, id=review_id)
         like, created = Like.objects.get_or_create(review=review, user=request.user)
         
-        if not created:
+        if not created: # si el like ya existe, se elimina
             like.delete()
             liked = False
-        else:
+        else: # si el like no existe, se crea
             liked = True
             
-        return JsonResponse({
+        return JsonResponse({ # retornamos un json con el like y el numero de likes
             'liked': liked,
             'likes_count': review.likes.count()
         })
     
-    return JsonResponse({'error': 'Método no permitido'}, status=405)
+    return JsonResponse({'error': 'Método no permitido'}, status=405) # si el metodo no es post, se devuelve un error
 
 @login_required
-def add_comment(request, review_id):
+def add_comment(request, review_id): # agregar comentario a reseña
     """Agregar comentario a reseña"""
-    if request.method == 'POST':
-        review = get_object_or_404(Review, id=review_id)
+    if request.method == 'POST': # si el metodo es post, se agrega el comentario
+        review = get_object_or_404(Review, id=review_id) # se trae la reseña
         form = CommentForm(request.POST)
         parent_id = request.POST.get('parent_id')
         
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.review = review
-            comment.author = request.user
-            if parent_id:
+        if form.is_valid(): # si el formulario es valido, se guarda el comentario
+            comment = form.save(commit=False) # se guarda el comentario pero no se guarda en la base de datos
+            comment.review = review # se relaciona el comentario con la reseña
+            comment.author = request.user # se relaciona el comentario con el usuario
+            if parent_id: # si hay un parent_id, se relaciona el comentario con el comentario padre
                 comment.parent_id = parent_id
-            comment.save()
-            messages.success(request, 'Comentario agregado!')
+            comment.save() # se guarda el comentario
+            messages.success(request, 'Comentario agregado!') # se muestra un mensaje de exito
         else:
             messages.error(request, 'Error al agregar comentario. Verifica el contenido.')
         
@@ -250,26 +252,27 @@ def add_comment(request, review_id):
     
     return redirect('movies:review_list')
 
+# definimos un buscador de peliculas y reseñas
 def search(request):
     """Búsqueda de películas y reseñas"""
-    query = request.GET.get('q', '')
-    results = {'movies': [], 'reviews': []}
+    query = request.GET.get('q', '') # se trae la query
+    results = {'movies': [], 'reviews': []} # se inicializa el diccionario con las peliculas y reseñas
     
-    if query:
-        results['movies'] = Movie.objects.filter(
-            Q(title__icontains=query) | 
-            Q(director__icontains=query) |
-            Q(genre__icontains=query)
-        )[:10]
+    if query: # si hay una query
+        results['movies'] = Movie.objects.filter( # se filtran las peliculas
+            Q(title__icontains=query) | # se filtra por titulo
+            Q(director__icontains=query) | # se filtra por director
+            Q(genre__icontains=query) # se filtra por genero
+        )[:10] # se muestran 10 resultados
         
-        results['reviews'] = Review.objects.filter(
-            Q(title__icontains=query) |
-            Q(content__icontains=query)
-        ).select_related('movie', 'author')[:10]
+        results['reviews'] = Review.objects.filter( # se filtran las reseñas
+            Q(title__icontains=query) | # se filtra por titulo
+            Q(content__icontains=query) # se filtra por contenido
+        ).select_related('movie', 'author')[:10] # se muestran 10 resultados
     
-    context = {
-        'query': query,
-        'results': results,
+    context = { # se retorna el contexto
+        'query': query, # se retorna la query
+        'results': results, # se retorna el diccionario con las peliculas y reseñas
     }
     return render(request, 'movies/search.html', context)
 

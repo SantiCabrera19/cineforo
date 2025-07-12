@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-app_name = 'movies'
+app_name = 'movies' # nos servira para despues referenciar las urls de la app
 
 urlpatterns = [
     # Página principal del foro

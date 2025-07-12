@@ -23,6 +23,7 @@ class Movie(models.Model):
         verbose_name_plural = "Películas"
         ordering = ['-created_at']
     
+    # metodos especiales para el modelo
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(f"{self.title}-{self.year}")
@@ -67,6 +68,26 @@ class Review(models.Model):
     def get_absolute_url(self):
         return reverse('review_detail', kwargs={'slug': self.slug})
     
+    def get_preview(self, max_words=30):
+        """Genera un preview limpio de la reseña"""
+        if self.has_spoilers:
+            return f"[Contenido con spoilers] - {self.title}"
+        
+        # Importar aquí para evitar circular imports
+        from django.utils.html import strip_tags
+        import re
+        
+        # Limpiar HTML
+        clean_content = strip_tags(self.content or "")
+        clean_content = re.sub(r'\s+', ' ', clean_content).strip()
+        
+        # Truncar palabras
+        words = clean_content.split()
+        if len(words) > max_words:
+            return ' '.join(words[:max_words]) + '...'
+        
+        return clean_content
+    
     def __str__(self):
         return f"Reseña de {self.movie.title} por {self.author.username}"
 
@@ -76,7 +97,7 @@ class Comment(models.Model):
     content = models.TextField(verbose_name="Comentario")
     has_spoilers = models.BooleanField(default=False, verbose_name="Contiene spoilers")
     created_at = models.DateTimeField(auto_now_add=True)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, blank=True, null=True, related_name='replies')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies') # relacion con el mismo modelo
     
     class Meta:
         verbose_name = "Comentario"
@@ -118,12 +139,13 @@ class UserProfile(models.Model):
         verbose_name = "Perfil de usuario"
         verbose_name_plural = "Perfiles de usuario"
     
-    @property
+    @property # usamos property para que se pueda usar como atributo
     def age(self):
         """Calcular edad a partir de la fecha de nacimiento"""
         if self.birth_date:
-            from datetime import date
-            today = date.today()
+            from datetime import date # importamos date para calcular la edad
+            today = date.today() # fecha actual la guardamos en today
+            # retornamos la edad, si la fecha de nacimiento es mayor a la fecha actual, restamos 1
             return today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
         return None
     

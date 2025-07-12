@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load review_filters %}
 
 {% block title %}Reseñas - CineForo{% endblock %}
 
@@ -70,10 +71,15 @@
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
                             <div>
-                                <h2 style="margin-bottom: 0.5rem;">
+                                <h2 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                                     <a href="{% url 'movies:review_detail' review.slug %}" style="text-decoration: none; color: #2c3e50;">
                                         {{ review.title }}
                                     </a>
+                                    {% if review.has_spoilers %}
+                                        <span style="background-color: #d68910; color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">
+                                            <i class="fas fa-eye-slash"></i> SPOILERS
+                                        </span>
+                                    {% endif %}
                                 </h2>
                                 <p style="color: #7f8c8d; margin-bottom: 0.5rem;">
                                     Reseña de 
@@ -108,12 +114,25 @@
                             </div>
                         </div>
                         
-                        <p style="color: #555; line-height: 1.6;">
-                            {{ review.content|truncatewords:40 }}
-                            {% if review.content|wordcount > 40 %}
-                                <a href="{% url 'movies:review_detail' review.slug %}" style="color: #3498db;">...leer más</a>
+                        <!-- Preview inteligente con manejo de spoilers -->
+                        <div style="color: #555; line-height: 1.6; margin-top: 1rem;">
+                            {% if review.has_spoilers %}
+                                <!-- Mostrar advertencia de spoiler en lugar del contenido -->
+                                <div style="color: #d68910; background-color: #fff3cd; padding: 0.75rem; border-radius: 4px; border: 1px solid #d68910; font-size: 0.95rem;">
+                                    <i class="fas fa-eye-slash"></i> 
+                                    <strong>Contenido con spoilers</strong> - 
+                                    <a href="{% url 'movies:review_detail' review.slug %}" style="color: #d68910; text-decoration: underline;">Haz click para leer la reseña completa</a>
+                                </div>
+                            {% else %}
+                                <!-- Mostrar preview limpio para reseñas sin spoilers -->
+                                <p style="margin: 0;">
+                                    {{ review.content|smart_preview:35 }}
+                                    {% if review.content|wordcount > 35 %}
+                                        <a href="{% url 'movies:review_detail' review.slug %}" style="color: #3498db; margin-left: 0.5rem;">leer más</a>
+                                    {% endif %}
+                                </p>
                             {% endif %}
-                        </p>
+                        </div>
                     </div>
                 </div>
             </div>

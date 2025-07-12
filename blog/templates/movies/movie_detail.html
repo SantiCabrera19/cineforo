@@ -97,12 +97,24 @@
                         </div>
                     </div>
                     
-                    <p style="color: #555; line-height: 1.6;">
-                        {{ review.content|truncatewords:30 }}
-                        {% if review.content|wordcount > 30 %}
-                            <a href="{% url 'movies:review_detail' review.slug %}" style="color: #3498db;">...leer más</a>
+                    <!-- Preview inteligente con manejo de spoilers -->
+                    <div style="color: #555; line-height: 1.6; margin-top: 1rem;">
+                        {% load review_filters %}
+                        {% if review.has_spoilers %}
+                            <div style="color: #d68910; background-color: #fff3cd; padding: 0.75rem; border-radius: 4px; border: 1px solid #d68910; font-size: 0.95rem;">
+                                <i class="fas fa-eye-slash"></i> 
+                                <strong>Contenido con spoilers</strong> - 
+                                <a href="{% url 'movies:review_detail' review.slug %}" style="color: #d68910; text-decoration: underline;">Haz click para leer la reseña</a>
+                            </div>
+                        {% else %}
+                            <p style="margin: 0;">
+                                {{ review.content|smart_preview:30 }}
+                                {% if review.content|wordcount > 30 %}
+                                    <a href="{% url 'movies:review_detail' review.slug %}" style="color: #3498db; margin-left: 0.5rem;">leer más</a>
+                                {% endif %}
+                            </p>
                         {% endif %}
-                    </p>
+                    </div>
                 </div>
             {% empty %}
                 <div style="text-align: center; padding: 2rem; color: #7f8c8d;">

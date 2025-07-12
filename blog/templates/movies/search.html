@@ -107,10 +107,22 @@
                                         <span style="color: #95a5a6; font-size: 0.9rem;">{{ review.created_at|date:"d M Y" }}</span>
                                     </div>
                                     
-                                    <p style="color: #555; line-height: 1.6;">
-                                        {{ review.content|truncatewords:30 }}
-                                        <a href="{% url 'movies:review_detail' review.slug %}" style="color: #3498db;">...leer más</a>
-                                    </p>
+                                    <!-- Preview inteligente con manejo de spoilers -->
+                                    <div style="color: #555; line-height: 1.6;">
+                                        {% load review_filters %}
+                                        {% if review.has_spoilers %}
+                                            <div style="color: #d68910; background-color: #fff3cd; padding: 0.5rem; border-radius: 4px; border: 1px solid #d68910; font-size: 0.9rem;">
+                                                <i class="fas fa-eye-slash"></i> 
+                                                <strong>Spoilers</strong> - 
+                                                <a href="{% url 'movies:review_detail' review.slug %}" style="color: #d68910;">Ver reseña</a>
+                                            </div>
+                                        {% else %}
+                                            <p style="margin: 0;">
+                                                {{ review.content|smart_preview:30 }}
+                                                <a href="{% url 'movies:review_detail' review.slug %}" style="color: #3498db; margin-left: 0.5rem;">leer más</a>
+                                            </p>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>

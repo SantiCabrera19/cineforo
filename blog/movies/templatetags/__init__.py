@@ -1,0 +1,1 @@
+# Este archivo hace que templatetags sea un paquete de Python 
