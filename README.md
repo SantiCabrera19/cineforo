@@ -54,7 +54,7 @@ Una plataforma web moderna para cinéfilos donde puedes escribir reseñas, comen
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/cineforo.git
+git clone https://github.com/SantiCabrera19/cineforo.git
 cd cineforo
 
 # 2. Instalación completa automática
@@ -330,7 +330,7 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 
 1. **Clonar y configurar**:
 ```bash
-git clone https://github.com/tu-usuario/cineforo.git
+git clone https://github.com/SantiCabrera19/cineforo.git
 cd cineforo
 python setup.py fresh
 ```
@@ -503,9 +503,9 @@ python scripts/dev_commands.py urls     # Ver URLs disponibles
 
 **¿Te gusta el proyecto? ¡Dale una ⭐ en GitHub!**
 
-[🐛 Reportar Bug](https://github.com/tu-usuario/cineforo/issues) · 
-[💡 Solicitar Feature](https://github.com/tu-usuario/cineforo/issues) · 
-[📖 Documentación](https://github.com/tu-usuario/cineforo/wiki)
+[🐛 Reportar Bug](https://github.com/SantiCabrera19/cineforo/issues) · 
+[💡 Solicitar Feature](https://github.com/SantiCabrer19/cineforo/issues) · 
+[📖 Documentación](https://github.com/SantiCabrera19/cineforo/wiki)
 
 ---
 
